@@ -30,6 +30,11 @@
       "label": "build wasm",
       "type": "shell",
       "command": "cd src-wasm && wasm-pack build --target web"
+    },
+    {
+      "label": "run tests",
+      "type": "shell",
+      "command": "npm test"
     }
   ]
 }
