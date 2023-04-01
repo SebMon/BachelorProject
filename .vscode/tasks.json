@@ -25,6 +25,11 @@
       "label": "start production server",
       "type": "shell",
       "command": "docker-compose up"
+    },
+    {
+      "label": "build wasm",
+      "type": "shell",
+      "command": "cd src-wasm && wasm-pack build --target web"
     }
   ]
 }

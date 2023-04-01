@@ -28,3 +28,24 @@ then
 ```bash
 docker-compose up
 ```
+
+## Building wasm
+
+The wasm package can be build by going to the src-wasm folder and running
+
+```bash
+wasm-pack build --target web
+```
+
+You need to have the cargo (rust) package "wasm-pack" installed. It is recommended to use version 0.9.1, as it hasn't been possible to get it to work with any newer versions.
+
+In order for the "build wasm" vscode task to work, you might have to add the following to your vscode settings.json file (replacing linux and zsh with your os and shell)
+
+```json
+"terminal.integrated.profiles.linux": {
+  "zsh": {
+    "path": "/bin/zsh",
+    "args": ["-l", "-i"]
+  }
+}
+```
