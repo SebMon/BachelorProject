@@ -3,6 +3,7 @@ import './App.css';
 import init, { fib } from 'src-wasm';
 import Example from './components/Example';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Example for demonstrating using wasm
 init()

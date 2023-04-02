@@ -11,7 +11,7 @@ export default function Example(): JSX.Element {
         }}
         className="btn btn-primary"
       >
-        count is {count}
+        count is {count} <i className="bi bi-emoji-sunglasses"></i>
       </button>
     </div>
   );
