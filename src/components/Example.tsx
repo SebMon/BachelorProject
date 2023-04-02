@@ -4,11 +4,12 @@ export default function Example(): JSX.Element {
   const [count, setCount] = useState(0);
 
   return (
-    <div>
+    <div className="container pt-5">
       <button
         onClick={() => {
           setCount((count) => count + 1);
         }}
+        className="btn btn-primary"
       >
         count is {count}
       </button>

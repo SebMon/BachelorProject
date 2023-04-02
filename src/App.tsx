@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import init, { fib } from 'src-wasm';
 import Example from './components/Example';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Example for demonstrating using wasm
 init()
