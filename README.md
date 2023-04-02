@@ -64,3 +64,11 @@ You should have the three plugins "prettier", "eslint" and "sonarlint" installed
   "editor.formatOnSave": true
 },
 ```
+
+## Running unit-tests
+
+The unit tests are run using vitest. They can be run with the following command:
+
+```bash
+npm test
+```
