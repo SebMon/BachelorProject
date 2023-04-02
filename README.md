@@ -49,3 +49,18 @@ In order for the "build wasm" vscode task to work, you might have to add the fol
   }
 }
 ```
+
+## Before coding
+
+You should have the three plugins "prettier", "eslint" and "sonarlint" installed. Prettier should format on save. This can be tested by e.g. removing a semicolon from the end of a line in a .tsx file and saving - prettier should add the semicolon again. If it doesn't, try adding the following to your global vscode settings
+
+```json
+"[typescript]": {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
+},
+"[typescriptreact]": {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
+},
+```
