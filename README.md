@@ -1,6 +1,10 @@
 # BachelorProject
 Magnus and Sebastian's bachelor project repository
 
+## Node version
+
+The project should be built and run with node 18
+
 ## Running the project
 
 Note: all the following are implemented as vscode tasks
