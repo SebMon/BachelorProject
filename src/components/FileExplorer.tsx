@@ -22,7 +22,13 @@ export default function FileExplorer(): JSX.Element {
       >
         Select Folder
       </button>
-      <button>Close Folder</button>
+      <button
+        onClick={() => {
+          setMainDirectoryHandle(undefined);
+        }}
+      >
+        Close Folder
+      </button>
       <h2>{mainDirectoryHandle?.name}</h2>
       {mainDirectoryHandle !== undefined && (
         <ul className="list-group">

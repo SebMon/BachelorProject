@@ -24,6 +24,16 @@ module.exports = {
   rules: {
     semi: 'off',
     '@typescript-eslint/semi': ['off'],
-    '@typescript-eslint/space-before-function-paren': ['off']
+    '@typescript-eslint/member-delimiter-style': ['off'],
+    '@typescript-eslint/space-before-function-paren': ['off'],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn', // or "error"
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }
+    ]
   }
 };
