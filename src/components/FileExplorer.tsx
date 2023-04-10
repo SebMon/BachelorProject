@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Folder from './Folder';
+import File from './File';
 
 export default function FileExplorer(): JSX.Element {
   const [mainDirectoryHandle, setMainDirectoryHandle] = useState<FileSystemDirectoryHandle>();
@@ -22,9 +24,7 @@ export default function FileExplorer(): JSX.Element {
         setSubfolders(newSubFolders);
         setFiles(newFiles);
       })
-      .catch((e) => {
-        console.log(e);
-      });
+      .catch(console.error);
   };
 
   return (
@@ -38,12 +38,16 @@ export default function FileExplorer(): JSX.Element {
       </button>
       <button>Close Folder</button>
       <h2>{mainDirectoryHandle?.name}</h2>
-      <ul>
+      <ul className="list-group">
         {subFolders?.map((directoryHandle) => (
-          <li key={directoryHandle.name}>Folder {directoryHandle.name}</li>
+          <li className="list-group-item" key={directoryHandle.name}>
+            <Folder handle={directoryHandle}></Folder>
+          </li>
         ))}
         {files?.map((fileHandle) => (
-          <li key={fileHandle.name}>File {fileHandle.name}</li>
+          <li className="list-group-item" key={fileHandle.name}>
+            <File handle={fileHandle}></File>
+          </li>
         ))}
       </ul>
     </div>
