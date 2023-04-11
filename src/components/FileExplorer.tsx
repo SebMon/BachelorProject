@@ -15,9 +15,9 @@ export default function FileExplorer(): JSX.Element {
 
   return (
     <div className="container mt-3 pt-2 h-75">
-      <div className="row ms-2 mb-2">
+      <div className="row ms-3 me-3 mb-2">
         <button
-          className="col-3 btn btn-primary me-2"
+          className="col-3 btn btn-light me-2"
           onClick={() => {
             selectFolder();
           }}
@@ -25,7 +25,7 @@ export default function FileExplorer(): JSX.Element {
           Select Folder
         </button>
         <button
-          className="col-3 btn btn-primary"
+          className="col-3 btn btn-light"
           onClick={() => {
             setMainDirectoryHandle(undefined);
           }}
