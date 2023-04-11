@@ -33,28 +33,31 @@ export default function Folder(props: FolderProps): JSX.Element {
   }, [directoryHandle]);
 
   return (
-    <div>
-      <p>{directoryHandle?.name}</p>
-      <button
-        onClick={() => {
-          setExpanded(!expanded);
-        }}
-      >
-        Expand
-      </button>
+    <div className="container">
+      <div className="row">
+        <i
+          role="button"
+          className={`col-1 bi bi-chevron-${expanded ? 'down' : 'right'}`}
+          onClick={() => {
+            setExpanded(!expanded);
+          }}
+        ></i>
+        <p className="col">{directoryHandle?.name}</p>
+      </div>
+
       {expanded && (
-        <ul className="list-group">
+        <div>
           {subFolders?.map((directoryHandle) => (
-            <li className="list-group-item" key={directoryHandle.name}>
+            <div className="row ms-2" key={directoryHandle.name}>
               <Folder handle={directoryHandle}></Folder>
-            </li>
+            </div>
           ))}
           {files?.map((fileHandle) => (
-            <li className="list-group-item" key={fileHandle.name}>
+            <div className="row ms-2" key={fileHandle.name}>
               <File handle={fileHandle}></File>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

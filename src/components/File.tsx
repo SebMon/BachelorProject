@@ -5,5 +5,10 @@ interface FileProps {
 }
 
 export default function Folder(props: FileProps): JSX.Element {
-  return <p>{props.handle.name}</p>;
+  return (
+    <div className="row">
+      <i className="col-1 bi bi-file-earmark-fill"></i>
+      <p className="col">{props.handle.name}</p>
+    </div>
+  );
 }

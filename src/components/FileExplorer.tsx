@@ -14,29 +14,28 @@ export default function FileExplorer(): JSX.Element {
   };
 
   return (
-    <div className="container pt-5">
-      <button
-        onClick={() => {
-          selectFolder();
-        }}
-      >
-        Select Folder
-      </button>
-      <button
-        onClick={() => {
-          setMainDirectoryHandle(undefined);
-        }}
-      >
-        Close Folder
-      </button>
-      <h2>{mainDirectoryHandle?.name}</h2>
-      {mainDirectoryHandle !== undefined && (
-        <ul className="list-group">
-          <li className="list-group-item" key={mainDirectoryHandle?.name}>
-            <Folder handle={mainDirectoryHandle}></Folder>
-          </li>
-        </ul>
-      )}
+    <div className="container mt-3 pt-2 h-75">
+      <div className="row ms-2 mb-2">
+        <button
+          className="col-3 btn btn-primary me-2"
+          onClick={() => {
+            selectFolder();
+          }}
+        >
+          Select Folder
+        </button>
+        <button
+          className="col-3 btn btn-primary"
+          onClick={() => {
+            setMainDirectoryHandle(undefined);
+          }}
+        >
+          Close Folder
+        </button>
+      </div>
+      <div className="container pt-3 bg-light rounded h-100 overflow-auto">
+        {mainDirectoryHandle !== undefined && <Folder handle={mainDirectoryHandle}></Folder>}
+      </div>
     </div>
   );
 }
