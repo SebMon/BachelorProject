@@ -15,7 +15,7 @@ export default function FileExplorer(): JSX.Element {
 
   return (
     <div className="container mt-3 pt-2 h-75">
-      <div className="row ms-3 me-3 mb-2">
+      <div className="row me-3 mb-2">
         <button
           className="col-3 btn btn-light me-2"
           onClick={() => {
@@ -33,8 +33,8 @@ export default function FileExplorer(): JSX.Element {
           Close Folder
         </button>
       </div>
-      <div className="container pt-3 bg-light rounded h-100 overflow-auto">
-        {mainDirectoryHandle !== undefined && <Folder handle={mainDirectoryHandle}></Folder>}
+      <div className="container row pt-3 bg-light rounded h-100 overflow-auto">
+        {mainDirectoryHandle !== undefined ? <Folder handle={mainDirectoryHandle}></Folder> : null}
       </div>
     </div>
   );
