@@ -18,7 +18,7 @@ export default function Folder(props: FolderProps): JSX.Element {
 
     const fetchData = async (): Promise<void> => {
       if (directoryHandle === undefined) return;
-      for await (const [_name, value] of directoryHandle.entries()) {
+      for await (const value of directoryHandle.values()) {
         if (value.kind === 'directory') {
           newSubFolders.push(value);
         } else if (value.kind === 'file') {
