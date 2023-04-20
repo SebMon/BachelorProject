@@ -29,7 +29,7 @@
     {
       "label": "build wasm",
       "type": "shell",
-      "command": "cd src-wasm && wasm-pack build --target web"
+      "command": "cd src-wasm && wasm-pack build --target web --out-name index"
     },
     {
       "label": "run tests",

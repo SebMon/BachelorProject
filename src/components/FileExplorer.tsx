@@ -14,7 +14,7 @@ export default function FileExplorer(): JSX.Element {
   };
 
   return (
-    <div className="container mt-3 pt-2 h-75">
+    <div className="container h-75">
       <div className="row me-3 mb-2">
         <button
           className="col-3 btn btn-light me-2"
