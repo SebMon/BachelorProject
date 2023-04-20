@@ -47,16 +47,20 @@ export default function Folder(props: FolderProps): JSX.Element {
 
       {expanded && (
         <div>
-          {subFolders?.map((directoryHandle) => (
-            <div className="row ms-2" key={directoryHandle.name}>
-              <Folder handle={directoryHandle}></Folder>
-            </div>
-          ))}
-          {files?.map((fileHandle) => (
-            <div className="row ms-2" key={fileHandle.name}>
-              <File handle={fileHandle}></File>
-            </div>
-          ))}
+          {subFolders
+            ?.sort((a, b) => a.name.localeCompare(b.name))
+            .map((directoryHandle) => (
+              <div className="row ms-2" key={directoryHandle.name}>
+                <Folder handle={directoryHandle}></Folder>
+              </div>
+            ))}
+          {files
+            ?.sort((a, b) => a.name.localeCompare(b.name))
+            .map((fileHandle) => (
+              <div className="row ms-2" key={fileHandle.name}>
+                <File handle={fileHandle}></File>
+              </div>
+            ))}
         </div>
       )}
     </div>
