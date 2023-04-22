@@ -7,9 +7,9 @@ import FileExplorer from './components/FileExplorer';
 import FileMenu from './components/FileMenu';
 import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
-import EncryptDialog from './components/EncryptDialog';
+import EncryptDialog, { EncryptionDialogVariant } from './components/EncryptDialog';
 import type { EncryptionType } from './types/Encryption';
-import { encryptFile } from './encryption/EncryptionHandler';
+import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 
 // Example for demonstrating using wasm
 init()
@@ -32,6 +32,7 @@ function App(): JSX.Element {
   };
 
   const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
+  const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
 
   const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
     return {
@@ -45,23 +46,34 @@ function App(): JSX.Element {
   }, [selectedFile, selectedFilesParentFolder, fileSystemInvalidated]);
 
   const encryptSelected = (): void => {
+    setEncryptionDialogVariant('encrypt');
+    setShowEncryptionDialog(true);
+  };
+
+  const decryptSelected = (): void => {
+    setEncryptionDialogVariant('decrypt');
     setShowEncryptionDialog(true);
   };
 
   const encryptionTriggered = (type: EncryptionType, key: string): void => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
-    encryptFile(selectedFile, selectedFilesParentFolder, type, key)
-      .then(() => {
-        console.log('encryption finished');
-        invalidateFileSystem();
-      })
-      .catch(() => {
-        console.log('encryption failed');
-      });
-  };
-
-  const decryptSelected = (): void => {
-    console.log('decrypt pressed');
+    if (encryptionDialogVariant === 'encrypt') {
+      encryptFile(selectedFile, selectedFilesParentFolder, type, key)
+        .then(() => {
+          invalidateFileSystem();
+        })
+        .catch(() => {
+          alert('Encryption Failed!');
+        });
+    } else {
+      decryptFile(selectedFile, selectedFilesParentFolder, type, key)
+        .then(() => {
+          invalidateFileSystem();
+        })
+        .catch(() => {
+          alert('Decryption Failed!');
+        });
+    }
   };
 
   return (
@@ -81,6 +93,7 @@ function App(): JSX.Element {
 
       <EncryptDialog
         show={showEncryptionDialog}
+        variant={encryptionDialogVariant}
         onClose={() => {
           setShowEncryptionDialog(false);
         }}

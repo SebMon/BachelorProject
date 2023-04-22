@@ -9,7 +9,7 @@ const encryptCallback = vi.fn();
 const closeCallback = vi.fn();
 
 beforeEach(() => {
-  render(<EncryptDialog show={true} onClose={closeCallback} onEncrypt={encryptCallback} />);
+  render(<EncryptDialog show={true} onClose={closeCallback} onEncrypt={encryptCallback} variant="encrypt" />);
 });
 
 afterEach(() => {

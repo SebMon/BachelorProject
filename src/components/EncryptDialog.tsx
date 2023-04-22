@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { Button, Form, InputGroup, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Form, InputGroup, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { EncryptionType } from '../types/Encryption';
+
+export type EncryptionDialogVariant = 'encrypt' | 'decrypt';
 
 interface EncryptDialogProps {
   show: boolean;
+  variant: EncryptionDialogVariant;
   onClose: () => void;
   onEncrypt: (type: EncryptionType, key: string) => void;
 }
@@ -44,7 +47,7 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
   return (
     <Modal show={props.show} onHide={props.onClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Encrypt</Modal.Title>
+        <Modal.Title>{props.variant === 'encrypt' ? 'Encrypt' : 'Decrypt'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form.Label htmlFor="encryptionTypeSelect">Algorithm</Form.Label>
@@ -65,7 +68,7 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
         </InputGroup>
 
         <button className="btn btn-primary mt-3" onClick={encryptButtonPressed}>
-          Encrypt!
+          {props.variant === 'encrypt' ? 'Encrypt!' : 'Decrypt!'}
         </button>
       </Modal.Body>
     </Modal>
