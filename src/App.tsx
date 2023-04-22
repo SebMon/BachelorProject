@@ -62,7 +62,8 @@ function App(): JSX.Element {
         .then(() => {
           invalidateFileSystem();
         })
-        .catch(() => {
+        .catch((err: Error) => {
+          console.error(err);
           alert('Encryption Failed!');
         });
     } else {
@@ -70,7 +71,8 @@ function App(): JSX.Element {
         .then(() => {
           invalidateFileSystem();
         })
-        .catch(() => {
+        .catch((err: Error) => {
+          console.error(err);
           alert('Decryption Failed!');
         });
     }

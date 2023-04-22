@@ -1,8 +1,7 @@
 import { hexToBytes } from '../encodeDecode';
-import { createHash } from 'crypto';
 import type { RSAKey, RSAModuloExponentSet } from './keys';
 
-export function encrypt(input: Uint8Array, key: RSAKey): Uint8Array {
+export async function encrypt(input: Uint8Array, key: RSAKey): Promise<Uint8Array> {
   let moduloExponentSet: RSAModuloExponentSet;
 
   // the attribute 'd' is on private but not public keys. So based on this attribute, typescript will infer which of the two types 'key' is
@@ -22,7 +21,7 @@ export function encrypt(input: Uint8Array, key: RSAKey): Uint8Array {
 
   for (let i = 0; i < blocks; i++) {
     output.set(
-      RSAES_OAEP_ENCRYPT(moduloExponentSet, input.slice(i * blockLength, (i + 1) * blockLength)),
+      await RSAES_OAEP_ENCRYPT(moduloExponentSet, input.slice(i * blockLength, (i + 1) * blockLength)),
       i * keyLength
     );
   }
@@ -30,7 +29,7 @@ export function encrypt(input: Uint8Array, key: RSAKey): Uint8Array {
   return output;
 }
 
-export function decrypt(input: Uint8Array, key: RSAKey): Uint8Array {
+export async function decrypt(input: Uint8Array, key: RSAKey): Promise<Uint8Array> {
   let moduloExponentSet: RSAModuloExponentSet;
 
   // the attribute 'd' is on private but not public keys. So based on this attribute, typescript will infer which of the two types 'key' is
@@ -49,11 +48,17 @@ export function decrypt(input: Uint8Array, key: RSAKey): Uint8Array {
   const output = new Uint8Array(blockLength * blocks);
 
   for (let i = 0; i < blocks - 1; i++) {
-    output.set(RSAES_OAEP_DECRYPT(moduloExponentSet, input.slice(i * keyLength, (i + 1) * keyLength)), i * blockLength);
+    output.set(
+      await RSAES_OAEP_DECRYPT(moduloExponentSet, input.slice(i * keyLength, (i + 1) * keyLength)),
+      i * blockLength
+    );
   }
 
   // The last block is handles seperately, as we need to know its length in order to give the output the right length
-  const lastBlock = RSAES_OAEP_DECRYPT(moduloExponentSet, input.slice((blocks - 1) * keyLength, blocks * keyLength));
+  const lastBlock = await RSAES_OAEP_DECRYPT(
+    moduloExponentSet,
+    input.slice((blocks - 1) * keyLength, blocks * keyLength)
+  );
   output.set(lastBlock, (blocks - 1) * blockLength);
 
   return output.slice(0, output.length - (blockLength - lastBlock.length));
@@ -62,7 +67,7 @@ export function decrypt(input: Uint8Array, key: RSAKey): Uint8Array {
 const hLen = 20;
 const lHash = hexToBytes('da39a3ee5e6b4b0d3255bfef95601890afd80709');
 
-function RSAES_OAEP_ENCRYPT(key: RSAModuloExponentSet, M: Uint8Array): Uint8Array {
+async function RSAES_OAEP_ENCRYPT(key: RSAModuloExponentSet, M: Uint8Array): Promise<Uint8Array> {
   const k = key.modulo.length;
   if (M.length > k - 2 * hLen - 2) {
     throw new Error('message too long');
@@ -76,9 +81,9 @@ function RSAES_OAEP_ENCRYPT(key: RSAModuloExponentSet, M: Uint8Array): Uint8Arra
   DB.set(M, lHash.length + PS.length + 1);
 
   const seed = crypto.getRandomValues(new Uint8Array(hLen));
-  const dbMask = MGF(seed, k - hLen - 1);
+  const dbMask = await MGF(seed, k - hLen - 1);
   const maskedDB = xor(DB, dbMask);
-  const seedMask = MGF(maskedDB, hLen);
+  const seedMask = await MGF(maskedDB, hLen);
   const maskedSeed = xor(seed, seedMask);
 
   const EM = new Uint8Array(k);
@@ -95,7 +100,7 @@ function RSAES_OAEP_ENCRYPT(key: RSAModuloExponentSet, M: Uint8Array): Uint8Arra
   return C;
 }
 
-function RSAES_OAEP_DECRYPT(key: RSAModuloExponentSet, C: Uint8Array): Uint8Array {
+async function RSAES_OAEP_DECRYPT(key: RSAModuloExponentSet, C: Uint8Array): Promise<Uint8Array> {
   const k = key.modulo.length;
 
   if (C.length !== k) {
@@ -115,11 +120,11 @@ function RSAES_OAEP_DECRYPT(key: RSAModuloExponentSet, C: Uint8Array): Uint8Arra
   const maskedSeed = EM.slice(1, 1 + hLen);
   const maskedDB = EM.slice(1 + hLen, EM.length);
 
-  const seedMask = MGF(maskedDB, hLen);
+  const seedMask = await MGF(maskedDB, hLen);
 
   const seed = xor(maskedSeed, seedMask);
 
-  const dbMask = MGF(seed, k - hLen - 1);
+  const dbMask = await MGF(seed, k - hLen - 1);
 
   const db = xor(maskedDB, dbMask);
 
@@ -161,7 +166,7 @@ function RSADP(key: RSAModuloExponentSet, c: bigint): bigint {
 }
 
 // Mask generation function
-function MGF(mgfSeed: Uint8Array, maskLen: number): Uint8Array {
+async function MGF(mgfSeed: Uint8Array, maskLen: number): Promise<Uint8Array> {
   if (maskLen > 2 ** 32 * hLen) {
     throw new Error('Mask too long');
   }
@@ -172,8 +177,8 @@ function MGF(mgfSeed: Uint8Array, maskLen: number): Uint8Array {
     const concated = new Uint8Array(mgfSeed.length + 4);
     concated.set(mgfSeed);
     concated.set(C, mgfSeed.length);
-    const hash = hexToBytes(createHash('sha1').update(concated).digest('hex'));
-    T.set(hash, i * hLen);
+    const hash = await crypto.subtle.digest('SHA-1', concated);
+    T.set(new Uint8Array(hash), i * hLen);
   }
   return T.slice(0, maskLen);
 }

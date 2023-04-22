@@ -3,7 +3,7 @@ import { PrivateKeyFromPem, PrivateKeyToPem, PublicKeyFromPem, PublicKeyToPem } 
 
 import type { RSAPrivateKey, RSAPublicKey } from '../../src/encryption/RSA/keys';
 import { decrypt, encrypt } from '../../src/encryption/RSA';
-import { base64ToBytes, bytesToText, textToBytes } from '../../src/encryption/encodeDecode';
+import { base64ToBytes, textToBytes } from '../../src/encryption/encodeDecode';
 
 describe('RSA.ts', () => {
   // Website used to test the algorithm against: https://www.javainuse.com/rsagenerator
