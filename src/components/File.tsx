@@ -3,10 +3,11 @@ import { selectedFileContext } from '../context/SelectedFileContext';
 
 interface FileProps {
   handle: FileSystemFileHandle;
+  parent: FileSystemDirectoryHandle | undefined;
 }
 
 export default function File(props: FileProps): JSX.Element {
-  const { selectedFile, setSelectedFile } = useContext(selectedFileContext);
+  const { selectedFile, setSelectedFile, setSelectedFilesParentFolder } = useContext(selectedFileContext);
 
   return (
     <div
@@ -15,8 +16,10 @@ export default function File(props: FileProps): JSX.Element {
       onClick={() => {
         if (selectedFile !== props.handle) {
           setSelectedFile(props.handle);
+          setSelectedFilesParentFolder(props.parent);
         } else {
           setSelectedFile(undefined);
+          setSelectedFilesParentFolder(undefined);
         }
       }}
     >

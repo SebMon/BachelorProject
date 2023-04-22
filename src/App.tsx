@@ -9,6 +9,7 @@ import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionType } from './types/Encryption';
+import { encryptFile } from './encryption/EncryptionHandler';
 
 // Example for demonstrating using wasm
 init()
@@ -21,19 +22,42 @@ init()
 
 function App(): JSX.Element {
   const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
+  const [selectedFilesParentFolder, setSelectedFilesParentFolder] = useState<FileSystemDirectoryHandle | undefined>(
+    undefined
+  );
+
+  const [fileSystemInvalidated, setFileSystemInvalidated] = useState<number>(0);
+  const invalidateFileSystem = (): void => {
+    setFileSystemInvalidated(fileSystemInvalidated + 1);
+  };
+
   const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
 
   const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
-    return { selectedFile, setSelectedFile };
-  }, [selectedFile]);
+    return {
+      selectedFile,
+      setSelectedFile,
+      selectedFilesParentFolder,
+      setSelectedFilesParentFolder,
+      fileSystemInvalidated,
+      setFileSystemInvalidated
+    };
+  }, [selectedFile, selectedFilesParentFolder, fileSystemInvalidated]);
 
   const encryptSelected = (): void => {
     setShowEncryptionDialog(true);
   };
 
   const encryptionTriggered = (type: EncryptionType, key: string): void => {
-    console.log(type);
-    console.log(key);
+    if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
+    encryptFile(selectedFile, selectedFilesParentFolder, type, key)
+      .then(() => {
+        console.log('encryption finished');
+        invalidateFileSystem();
+      })
+      .catch(() => {
+        console.log('encryption failed');
+      });
   };
 
   const decryptSelected = (): void => {
