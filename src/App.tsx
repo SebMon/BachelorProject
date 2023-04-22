@@ -7,6 +7,8 @@ import FileExplorer from './components/FileExplorer';
 import FileMenu from './components/FileMenu';
 import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
+import EncryptDialog from './components/EncryptDialog';
+import type { EncryptionType } from './types/Encryption';
 
 // Example for demonstrating using wasm
 init()
@@ -19,13 +21,19 @@ init()
 
 function App(): JSX.Element {
   const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
+  const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
 
   const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
     return { selectedFile, setSelectedFile };
   }, [selectedFile]);
 
   const encryptSelected = (): void => {
-    console.log('encrypt pressed');
+    setShowEncryptionDialog(true);
+  };
+
+  const encryptionTriggered = (type: EncryptionType, key: string): void => {
+    console.log(type);
+    console.log(key);
   };
 
   const decryptSelected = (): void => {
@@ -46,6 +54,14 @@ function App(): JSX.Element {
           />
         </div>
       </div>
+
+      <EncryptDialog
+        show={showEncryptionDialog}
+        onClose={() => {
+          setShowEncryptionDialog(false);
+        }}
+        onEncrypt={encryptionTriggered}
+      />
     </selectedFileContext.Provider>
   );
 }
