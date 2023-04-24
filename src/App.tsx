@@ -7,7 +7,8 @@ import FileExplorer from './components/FileExplorer';
 import FileMenu from './components/FileMenu';
 import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
-import EncryptDialog, { EncryptionDialogVariant } from './components/EncryptDialog';
+import EncryptDialog from './components/EncryptDialog';
+import type { EncryptionDialogVariant } from './components/EncryptDialog';
 import type { EncryptionType } from './types/Encryption';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 

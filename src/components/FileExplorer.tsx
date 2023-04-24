@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Folder from './Folder';
+import { selectedFileContext } from '../context/SelectedFileContext';
 
 export default function FileExplorer(): JSX.Element {
   const [mainDirectoryHandle, setMainDirectoryHandle] = useState<FileSystemDirectoryHandle>();
+  const { fileSystemInvalidated, setFileSystemInvalidated } = useContext(selectedFileContext);
+
+  const invalidateFileSystem = (): void => {
+    setFileSystemInvalidated(fileSystemInvalidated + 1);
+  };
 
   const selectFolder = (): void => {
     window
@@ -25,12 +31,15 @@ export default function FileExplorer(): JSX.Element {
           Select Folder
         </button>
         <button
-          className="col-3 btn btn-light"
+          className="col-3 btn btn-light me-2"
           onClick={() => {
             setMainDirectoryHandle(undefined);
           }}
         >
           Close Folder
+        </button>
+        <button className="col-1 btn btn-light" onClick={invalidateFileSystem}>
+          <i className={'col-1 bi bi-arrow-clockwise'} />
         </button>
       </div>
       <div className="container row pt-3 bg-light rounded h-100 overflow-auto">
