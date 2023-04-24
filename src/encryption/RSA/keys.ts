@@ -28,6 +28,7 @@ export interface RSAModuloExponentSet {
  * @param pem pem pkcs8 formatted public key
  * @returns key in the format used by the RSA algorithm
  */
+
 export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
   const lines = pem.split('\n');
   const base64 = lines.slice(1, lines.length - 1).join('');
@@ -68,6 +69,7 @@ export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
 
   return publicKey.export({ type: 'spki', format: 'pem' }).toString();
 } */
+
 
 /**
  * Converts a string repressentation of an RSA private key - e.g. from a private.pem file
