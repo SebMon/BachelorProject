@@ -82,10 +82,10 @@ function App(): JSX.Element {
   return (
     <selectedFileContext.Provider value={selectedFileContextValue}>
       <div className="App row">
-        <div className="col-8 h-100 p-5">
+        <div className="col-12 col-md-8 h-100 pt-5 px-5">
           <FileExplorer />
         </div>
-        <div className="col-4 p-5">
+        <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
           <FileMenu
             fileName={selectedFile?.name}
             onEncryptionRequested={encryptSelected}
