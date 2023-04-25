@@ -51,7 +51,7 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
       </Modal.Header>
       <Modal.Body>
         <Form.Label htmlFor="encryptionTypeSelect">Algorithm</Form.Label>
-        <Form.Select id="encryptionTypeSelect" onChange={selectedAlgorithmChanged}>
+        <Form.Select id="encryptionTypeSelect" onChange={selectedAlgorithmChanged} value={encryptionType}>
           <option value={EncryptionType.Symmetric}>Symmetric encryption (AES)</option>
           <option value={EncryptionType.Asymmetric}>Asymmetric encryption (RSA)</option>
         </Form.Select>
