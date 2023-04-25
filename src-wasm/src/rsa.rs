@@ -1,11 +1,10 @@
-use std::{ops::Div};
 use rand::{distributions::Uniform, Rng};
-use num_bigint::{BigUint, ToBigUint};
+use ibig::{UBig, ubig};
 
 const H_LEN: usize = 20;
 const L_HASH: [u8; 20] = [218, 57, 163, 238, 94, 107, 75, 13, 50, 85, 191, 239, 149, 96, 24, 144, 175, 216, 7, 9];
 
-pub fn rsa_encrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) -> Vec<u8> {  
+pub fn rsa_encrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) -> Vec<u8> {
   let key_length = modulo.len();
   let block_length = key_length - 2 * H_LEN - 2;
   let blocks = (input.len() + block_length - 1) / block_length; // Same as ceil(input.len() / block_length)
@@ -60,6 +59,7 @@ pub fn rsaes_oaep_encrypt (modulo: &Vec<u8>, exponent: &Vec<u8>, mut input: Vec<
   let mut masked_db = xor(&db, &db_mask);
   let seed_mask = mgf(&masked_db, H_LEN);
   let mut masked_seed = xor(&seed, &seed_mask);
+  
 
   let mut em: Vec<u8> = Vec::new();
   em.push(0); 
@@ -68,6 +68,8 @@ pub fn rsaes_oaep_encrypt (modulo: &Vec<u8>, exponent: &Vec<u8>, mut input: Vec<
   while em.len() < k {
     em.push(0);
   }
+
+  
 
   let m = os2ip(&em);
 
@@ -127,7 +129,7 @@ fn mgf(mgf_seed: &[u8], mask_len: usize) -> Vec<u8> {
   let mut t: Vec<u8> = Vec::new();
 
   for i in 0.. mask_len / H_LEN {
-    let mut c = i2osp(i.to_biguint().expect("Could not convert to big int"), 4);
+    let mut c = i2osp(i.into(), 4);
     let mut concated: Vec<u8> = Vec::new();
     concated.append(&mut mgf_seed.clone().to_vec());
     concated.append(&mut c);
@@ -146,42 +148,47 @@ fn mgf(mgf_seed: &[u8], mask_len: usize) -> Vec<u8> {
   t[0..mask_len].to_vec()
 }
 
-fn i2osp(input: BigUint, x_len: u32) -> Vec<u8> {
-  let big_256 = 256.to_biguint().expect("Could not convert to big int");
+fn i2osp(input: UBig, x_len: usize) -> Vec<u8> {
+  let big_256 = ubig!(256);
 
   if input > big_256.pow(x_len)  {
     panic!("Integer too large");
   }
 
   let mut out: Vec<u8> = vec![0; x_len as usize];
-  for i in 1..=(x_len as usize) {
-    let result = (&input % &big_256.pow(i as u32)).div(big_256.pow((i - 1) as u32));
-    out[(x_len as usize) - i] = u8::from_be_bytes(result.to_bytes_be()[0..1].try_into().unwrap());
+  for i in 1..=x_len {
+    let result = (input.clone() % big_256.pow(i)) / big_256.pow(i - 1);
+    if result == ubig!(0) {
+      out[x_len  - i] = 0;
+    } else {
+      out[x_len  - i] = u8::from_be_bytes(result.to_be_bytes().try_into().unwrap());
+    } 
   }
 
   out
 }
 
-fn os2ip(input: &[u8]) -> BigUint {
-  let big_256 = 256.to_biguint().expect("Could not convert to big int");
+fn os2ip(input: &[u8]) -> UBig {
+  let big_256 = ubig!(256);
 
   let len = input.len();
-  let mut x = 0.to_biguint().expect("Could not convert to big int");
+  let mut x = ubig!(0);
+
   for i in 1..=len {
-    x += input[len - i] * &big_256.pow((i - 1).try_into().expect("Couldn't convert to u32"));
+    x += input[len - i] * big_256.clone().pow(i - 1);
   }
   x
 }
 
-fn rsaep(modulo: &[u8], exponent: &[u8], m: BigUint) -> BigUint {
-  if !(m >= 0.to_biguint().expect("Could not convert to big int") && m <= os2ip(&modulo) - 1_u8) {
+fn rsaep(modulo: &[u8], exponent: &[u8], m: UBig) -> UBig {
+  if !(m >= ubig!(0) && m <= os2ip(&modulo) - 1) {
     panic!("Message repressentative out of range");
   }
   mod_exp(m, os2ip(&exponent), os2ip(&modulo))
 }
 
-fn rsadp(modulo: &[u8], exponent: &[u8], c: BigUint) -> BigUint {
-  if !(c >= 0.to_biguint().expect("Could not convert to big int") && c <= os2ip(modulo) - 1.to_biguint().expect("Could not convert to big int")) {
+fn rsadp(modulo: &[u8], exponent: &[u8], c: UBig) -> UBig {
+  if !(c >= ubig!(0) && c <= os2ip(modulo) - 1) {
     panic!("Ciphertext repressantative out of range");
   }
   mod_exp(c, os2ip(exponent), os2ip(modulo))
@@ -195,15 +202,15 @@ fn xor(x: &[u8], y: &[u8]) -> Vec<u8> {
   result
 }
 
-fn mod_exp(mut base: BigUint, mut exponent: BigUint, modulo: BigUint) -> BigUint {
-  let mut result = 1.to_biguint().expect("Could not convert to big int");
-  base = &base % &modulo;
-  while exponent > 0.to_biguint().expect("Could not convert to big int") {
-    if &exponent % 2_u8 == 1.to_biguint().expect("Could not convert to big int") {
-      result = (&result * &base) % &modulo;
+fn mod_exp(mut base: UBig, mut exponent: UBig, modulo: UBig) -> UBig {
+  let mut result = ubig!(1);
+  base = base % &modulo;
+  while exponent > ubig!(0) {
+    if exponent.clone() % 2_u8 == 1 {
+      result = (result * base.clone()) % &modulo;
     }
-    exponent = &exponent / 2_u8;
-    base = (&base * &base) % &modulo;
+    exponent = exponent / 2_u8;
+    base = base.pow(2) % &modulo;
   }
   result
 }
