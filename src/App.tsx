@@ -56,26 +56,24 @@ function App(): JSX.Element {
     setShowEncryptionDialog(true);
   };
 
-  const encryptionTriggered = (type: EncryptionType, key: string): void => {
+  const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
     if (encryptionDialogVariant === 'encrypt') {
-      encryptFile(selectedFile, selectedFilesParentFolder, type, key)
-        .then(() => {
+      await encryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
+        if (e === null) {
           invalidateFileSystem();
-        })
-        .catch((err: Error) => {
-          console.error(err);
-          alert('Encryption Failed!');
-        });
+        } else {
+          console.error(e);
+        }
+      });
     } else {
-      decryptFile(selectedFile, selectedFilesParentFolder, type, key)
-        .then(() => {
+      await decryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
+        if (e === null) {
           invalidateFileSystem();
-        })
-        .catch((err: Error) => {
-          console.error(err);
-          alert('Decryption Failed!');
-        });
+        } else {
+          console.error(e);
+        }
+      });
     }
   };
 
