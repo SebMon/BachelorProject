@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import File from './File';
+import { selectedFileContext } from '../context/SelectedFileContext';
 
 interface FolderProps {
   handle: FileSystemDirectoryHandle;
@@ -10,6 +11,7 @@ export default function Folder(props: FolderProps): JSX.Element {
   const [subFolders, setSubfolders] = useState<FileSystemDirectoryHandle[]>();
   const [files, setFiles] = useState<FileSystemFileHandle[]>();
   const [expanded, setExpanded] = useState(false);
+  const { fileSystemInvalidated } = useContext(selectedFileContext);
 
   useEffect(() => {
     setDirectoryHandle(props.handle);
@@ -30,7 +32,7 @@ export default function Folder(props: FolderProps): JSX.Element {
     };
 
     fetchData().catch(console.error);
-  }, [directoryHandle]);
+  }, [directoryHandle, fileSystemInvalidated]);
 
   return (
     <div className="container">
@@ -58,7 +60,7 @@ export default function Folder(props: FolderProps): JSX.Element {
             ?.sort((a, b) => a.name.localeCompare(b.name))
             .map((fileHandle) => (
               <div className="row ms-2" key={fileHandle.name}>
-                <File handle={fileHandle}></File>
+                <File handle={fileHandle} parent={directoryHandle}></File>
               </div>
             ))}
         </div>

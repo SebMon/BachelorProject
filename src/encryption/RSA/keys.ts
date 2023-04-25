@@ -1,5 +1,4 @@
-import { createPrivateKey, createPublicKey } from 'crypto';
-import { base64ToBytes, bytesToBase64 } from '../encodeDecode';
+import { base64ToBytes, bytesToBase64, textToBytes } from '../encodeDecode';
 
 export interface RSAPublicKey {
   n: Uint8Array;
@@ -29,17 +28,30 @@ export interface RSAModuloExponentSet {
  * @param pem pem pkcs8 formatted public key
  * @returns key in the format used by the RSA algorithm
  */
-export function PublicKeyFromPem(pem: string): RSAPublicKey {
-  const publicKey = createPublicKey(pem);
 
-  const keyJWK = publicKey.export({ format: 'jwk' });
+export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
+  const lines = pem.split('\n');
+  const base64 = lines.slice(1, lines.length - 1).join('');
+
+  const publicKey = await crypto.subtle.importKey(
+    'spki',
+    str2ab(window.atob(base64)),
+    {
+      name: 'RSA-OAEP',
+      hash: { name: 'SHA-1' }
+    },
+    true,
+    []
+  );
+
+  const keyJWK = await crypto.subtle.exportKey('jwk', publicKey);
 
   if (keyJWK.n === undefined || keyJWK.e === undefined) {
-    throw Error('error');
+    throw Error("n or e wasn't defined");
   }
 
-  const n = base64ToBytes(keyJWK.n);
-  const e = base64ToBytes(keyJWK.e);
+  const e = new Uint8Array(str2ab(window.atob(keyJWK.e)));
+  const n = new Uint8Array(str2ab(window.atob(keyJWK.n.replaceAll('-', '+').replaceAll('_', '/'))));
 
   return { n, e };
 }
@@ -49,24 +61,37 @@ export function PublicKeyFromPem(pem: string): RSAPublicKey {
  * @param key the key
  * @returns string repressentation of the key in pem pkcs8 format
  */
-export function PublicKeyToPem(key: RSAPublicKey): string {
+/* export function PublicKeyToPem(key: RSAPublicKey): string {
   const publicKey = createPublicKey({
     format: 'jwk',
     key: { kty: 'RSA', n: bytesToBase64(key.n), e: bytesToBase64(key.e) }
   });
 
   return publicKey.export({ type: 'spki', format: 'pem' }).toString();
-}
+} */
+
 
 /**
  * Converts a string repressentation of an RSA private key - e.g. from a private.pem file
  * @param pem pem pkcs8 formatted private key
  * @returns key in the format used by the RSA algorithm
  */
-export function PrivateKeyFromPem(pem: string): RSAPrivateKey {
-  const privateKey = createPrivateKey(pem);
+export async function PrivateKeyFromPem(pem: string): Promise<RSAPrivateKey> {
+  const lines = pem.split('\n');
+  const base64 = lines.slice(1, lines.length - 1).join('');
 
-  const keyJWK = privateKey.export({ format: 'jwk' });
+  const privateKey = await crypto.subtle.importKey(
+    'pkcs8',
+    str2ab(window.atob(base64)),
+    {
+      name: 'RSA-OAEP',
+      hash: { name: 'SHA-1' }
+    },
+    true,
+    ['decrypt']
+  );
+
+  const keyJWK = await crypto.subtle.exportKey('jwk', privateKey);
 
   if (
     keyJWK.n === undefined ||
@@ -81,14 +106,14 @@ export function PrivateKeyFromPem(pem: string): RSAPrivateKey {
     throw Error('error');
   }
 
-  const n = base64ToBytes(keyJWK.n);
-  const d = base64ToBytes(keyJWK.d);
-  const e = base64ToBytes(keyJWK.e);
-  const p = base64ToBytes(keyJWK.p);
-  const q = base64ToBytes(keyJWK.q);
-  const dp = base64ToBytes(keyJWK.dp);
-  const dq = base64ToBytes(keyJWK.dq);
-  const qi = base64ToBytes(keyJWK.qi);
+  const n = new Uint8Array(str2ab(window.atob(keyJWK.n.replaceAll('-', '+').replaceAll('_', '/'))));
+  const e = new Uint8Array(str2ab(window.atob(keyJWK.e.replaceAll('-', '+').replaceAll('_', '/'))));
+  const d = new Uint8Array(str2ab(window.atob(keyJWK.d.replaceAll('-', '+').replaceAll('_', '/'))));
+  const p = new Uint8Array(str2ab(window.atob(keyJWK.p.replaceAll('-', '+').replaceAll('_', '/'))));
+  const q = new Uint8Array(str2ab(window.atob(keyJWK.q.replaceAll('-', '+').replaceAll('_', '/'))));
+  const dp = new Uint8Array(str2ab(window.atob(keyJWK.dp.replaceAll('-', '+').replaceAll('_', '/'))));
+  const dq = new Uint8Array(str2ab(window.atob(keyJWK.dq.replaceAll('-', '+').replaceAll('_', '/'))));
+  const qi = new Uint8Array(str2ab(window.atob(keyJWK.qi.replaceAll('-', '+').replaceAll('_', '/'))));
 
   return { n, d, e, p, q, dp, dq, qi };
 }
@@ -98,7 +123,7 @@ export function PrivateKeyFromPem(pem: string): RSAPrivateKey {
  * @param key the key
  * @returns string repressentation of the key in pem pkcs8 format
  */
-export function PrivateKeyToPem(key: RSAPrivateKey): string {
+/* export function PrivateKeyToPem(key: RSAPrivateKey): string {
   const privateKey = createPrivateKey({
     format: 'jwk',
     key: {
@@ -115,4 +140,13 @@ export function PrivateKeyToPem(key: RSAPrivateKey): string {
   });
 
   return privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+} */
+
+function str2ab(str: string): ArrayBuffer {
+  const buf = new ArrayBuffer(str.length);
+  const bufView = new Uint8Array(buf);
+  for (let i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
 }

@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import './App.css';
 import init, { fib } from 'src-wasm';
-import Example from './components/Example';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import FileExplorer from './components/FileExplorer';
+import FileMenu from './components/FileMenu';
+import { selectedFileContext } from './context/SelectedFileContext';
+import type { SelectedFileContext } from './context/SelectedFileContext';
+import EncryptDialog from './components/EncryptDialog';
+import type { EncryptionDialogVariant } from './components/EncryptDialog';
+import type { EncryptionType } from './types/Encryption';
+import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 
 // Example for demonstrating using wasm
 init()
@@ -16,11 +22,87 @@ init()
   });
 
 function App(): JSX.Element {
+  const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
+  const [selectedFilesParentFolder, setSelectedFilesParentFolder] = useState<FileSystemDirectoryHandle | undefined>(
+    undefined
+  );
+
+  const [fileSystemInvalidated, setFileSystemInvalidated] = useState<number>(0);
+  const invalidateFileSystem = (): void => {
+    setFileSystemInvalidated(fileSystemInvalidated + 1);
+  };
+
+  const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
+  const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
+
+  const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
+    return {
+      selectedFile,
+      setSelectedFile,
+      selectedFilesParentFolder,
+      setSelectedFilesParentFolder,
+      fileSystemInvalidated,
+      setFileSystemInvalidated
+    };
+  }, [selectedFile, selectedFilesParentFolder, fileSystemInvalidated]);
+
+  const encryptSelected = (): void => {
+    setEncryptionDialogVariant('encrypt');
+    setShowEncryptionDialog(true);
+  };
+
+  const decryptSelected = (): void => {
+    setEncryptionDialogVariant('decrypt');
+    setShowEncryptionDialog(true);
+  };
+
+  const encryptionTriggered = (type: EncryptionType, key: string): void => {
+    if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
+    if (encryptionDialogVariant === 'encrypt') {
+      encryptFile(selectedFile, selectedFilesParentFolder, type, key)
+        .then(() => {
+          invalidateFileSystem();
+        })
+        .catch((err: Error) => {
+          console.error(err);
+          alert('Encryption Failed!');
+        });
+    } else {
+      decryptFile(selectedFile, selectedFilesParentFolder, type, key)
+        .then(() => {
+          invalidateFileSystem();
+        })
+        .catch((err: Error) => {
+          console.error(err);
+          alert('Decryption Failed!');
+        });
+    }
+  };
+
   return (
-    <div className="App">
-      <Example></Example>
-      <FileExplorer></FileExplorer>
-    </div>
+    <selectedFileContext.Provider value={selectedFileContextValue}>
+      <div className="App row">
+        <div className="col-12 col-md-8 h-100 pt-5 px-5">
+          <FileExplorer />
+        </div>
+        <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
+          <FileMenu
+            fileName={selectedFile?.name}
+            onEncryptionRequested={encryptSelected}
+            onDecryptionRequested={decryptSelected}
+          />
+        </div>
+      </div>
+
+      <EncryptDialog
+        show={showEncryptionDialog}
+        variant={encryptionDialogVariant}
+        onClose={() => {
+          setShowEncryptionDialog(false);
+        }}
+        onEncrypt={encryptionTriggered}
+      />
+    </selectedFileContext.Provider>
   );
 }
 
