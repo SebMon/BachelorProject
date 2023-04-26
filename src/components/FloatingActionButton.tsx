@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import type { LegacyRef } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import type { Process } from '../types/Encryption';
 
@@ -8,7 +9,7 @@ interface CustomToggleProps {
 // eslint-disable-next-line react/display-name
 const CustomToggle = forwardRef(
   ({ onClick }: CustomToggleProps, ref): JSX.Element => (
-    <button ref={ref} className="btn btn-lg rounded-circle" onClick={onClick}>
+    <button ref={ref as LegacyRef<HTMLButtonElement>} className="btn btn-lg rounded-circle" onClick={onClick}>
       <div className="spinner-border text-light" role="status"></div>
     </button>
   )
