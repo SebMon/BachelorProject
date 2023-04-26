@@ -1,5 +1,3 @@
-import { base64ToBytes, bytesToBase64, textToBytes } from '../encodeDecode';
-
 export interface RSAPublicKey {
   n: Uint8Array;
   e: Uint8Array;
@@ -50,8 +48,8 @@ export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
     throw Error("n or e wasn't defined");
   }
 
-  const e = new Uint8Array(str2ab(window.atob(keyJWK.e)));
-  const n = new Uint8Array(str2ab(window.atob(keyJWK.n.replaceAll('-', '+').replaceAll('_', '/'))));
+  const e = base64ToUInt8Array(keyJWK.e);
+  const n = base64ToUInt8Array(keyJWK.n);
 
   return { n, e };
 }
@@ -69,7 +67,6 @@ export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
 
   return publicKey.export({ type: 'spki', format: 'pem' }).toString();
 } */
-
 
 /**
  * Converts a string repressentation of an RSA private key - e.g. from a private.pem file
@@ -106,14 +103,14 @@ export async function PrivateKeyFromPem(pem: string): Promise<RSAPrivateKey> {
     throw Error('error');
   }
 
-  const n = new Uint8Array(str2ab(window.atob(keyJWK.n.replaceAll('-', '+').replaceAll('_', '/'))));
-  const e = new Uint8Array(str2ab(window.atob(keyJWK.e.replaceAll('-', '+').replaceAll('_', '/'))));
-  const d = new Uint8Array(str2ab(window.atob(keyJWK.d.replaceAll('-', '+').replaceAll('_', '/'))));
-  const p = new Uint8Array(str2ab(window.atob(keyJWK.p.replaceAll('-', '+').replaceAll('_', '/'))));
-  const q = new Uint8Array(str2ab(window.atob(keyJWK.q.replaceAll('-', '+').replaceAll('_', '/'))));
-  const dp = new Uint8Array(str2ab(window.atob(keyJWK.dp.replaceAll('-', '+').replaceAll('_', '/'))));
-  const dq = new Uint8Array(str2ab(window.atob(keyJWK.dq.replaceAll('-', '+').replaceAll('_', '/'))));
-  const qi = new Uint8Array(str2ab(window.atob(keyJWK.qi.replaceAll('-', '+').replaceAll('_', '/'))));
+  const n = base64ToUInt8Array(keyJWK.n);
+  const e = base64ToUInt8Array(keyJWK.e);
+  const d = base64ToUInt8Array(keyJWK.d);
+  const p = base64ToUInt8Array(keyJWK.p);
+  const q = base64ToUInt8Array(keyJWK.q);
+  const dp = base64ToUInt8Array(keyJWK.dp);
+  const dq = base64ToUInt8Array(keyJWK.dq);
+  const qi = base64ToUInt8Array(keyJWK.qi);
 
   return { n, d, e, p, q, dp, dq, qi };
 }
@@ -149,4 +146,8 @@ function str2ab(str: string): ArrayBuffer {
     bufView[i] = str.charCodeAt(i);
   }
   return buf;
+}
+
+function base64ToUInt8Array(str: string): Uint8Array {
+  return new Uint8Array(str2ab(window.atob(str.replaceAll('-', '+').replaceAll('_', '/'))));
 }
