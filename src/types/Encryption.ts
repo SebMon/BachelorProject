@@ -9,3 +9,8 @@ export interface EncryptionRequest {
   type: EncryptionType;
   key: string;
 }
+
+export interface Process {
+  UUID: string;
+  name: string;
+}

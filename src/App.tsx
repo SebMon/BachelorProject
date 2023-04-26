@@ -9,8 +9,9 @@ import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
-import type { EncryptionType } from './types/Encryption';
+import type { EncryptionType, Process } from './types/Encryption';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
+import FloatingActionButton from './components/FloatingActionButton';
 
 // Example for demonstrating using wasm
 init()
@@ -46,6 +47,25 @@ function App(): JSX.Element {
     };
   }, [selectedFile, selectedFilesParentFolder, fileSystemInvalidated]);
 
+  const [currentProcesses, setCurrentProcesses] = useState<Process[]>([]);
+
+  const createProcess = (name: string): string => {
+    const UUID = self.crypto.randomUUID();
+    const newValue = currentProcesses;
+    currentProcesses.push({ UUID, name });
+    setCurrentProcesses(newValue);
+    return UUID;
+  };
+
+  const removeProcess = (UUID: string): void => {
+    const newValue = currentProcesses;
+    newValue.splice(
+      newValue.findIndex((p) => p.UUID === UUID),
+      1
+    );
+    setCurrentProcesses(newValue);
+  };
+
   const encryptSelected = (): void => {
     setEncryptionDialogVariant('encrypt');
     setShowEncryptionDialog(true);
@@ -58,8 +78,11 @@ function App(): JSX.Element {
 
   const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
+
     if (encryptionDialogVariant === 'encrypt') {
+      const UUID = createProcess(`encrypting ${selectedFile.name}`);
       await encryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
+        removeProcess(UUID);
         if (e === null) {
           invalidateFileSystem();
         } else {
@@ -67,7 +90,9 @@ function App(): JSX.Element {
         }
       });
     } else {
+      const UUID = createProcess(`Decrypting ${selectedFile.name}`);
       await decryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
+        removeProcess(UUID);
         if (e === null) {
           invalidateFileSystem();
         } else {
@@ -98,8 +123,10 @@ function App(): JSX.Element {
         onClose={() => {
           setShowEncryptionDialog(false);
         }}
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onEncrypt={encryptionTriggered}
       />
+      {currentProcesses.length > 0 ? <FloatingActionButton items={currentProcesses} /> : null}
     </selectedFileContext.Provider>
   );
 }
