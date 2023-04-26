@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import './App.css';
 import init, { fib } from 'src-wasm';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import FileExplorer from './components/FileExplorer';
 import FileMenu from './components/FileMenu';
 import { selectedFileContext } from './context/SelectedFileContext';
