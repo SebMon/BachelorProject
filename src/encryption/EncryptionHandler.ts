@@ -9,50 +9,86 @@ export async function encryptFile(
   fileHandle: FileSystemFileHandle,
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
-  key: string
+  key: string,
+  callback: (err: Error | null) => void
 ): Promise<void> {
+  // The following line forces the user to accept or reject the program writing to their filesystem immediately.
+  // If this is not done, the browser might not ask and make the writing of the encrypted file fail.
+  await (await fileHandle.createWritable({ keepExistingData: true })).close();
+
   const file = await fileHandle.getFile();
   const bytes = new Uint8Array(await file.arrayBuffer());
-  let encryptedBytes: Uint8Array;
+
+  let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    encryptedBytes = AES.encrypt(bytes, AESKey);
+    worker = new Worker(new URL('./workers/AES-E.ts', import.meta.url), { type: 'module' });
+    worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    encryptedBytes = await RSA.encrypt(bytes, rsakey);
+    worker = new Worker(new URL('./workers/RSA-E.ts', import.meta.url), { type: 'module' });
+    worker.postMessage({ bytes, rsakey });
   }
-  const encryptedFileName = file.name + '.encrypted';
-  const encryptedFile = await directoryHandle.getFileHandle(encryptedFileName, { create: true });
-  const writeableEncryptedFile = await encryptedFile.createWritable();
-  await writeableEncryptedFile.write(encryptedBytes);
-  await writeableEncryptedFile.close();
+
+  worker.addEventListener('message', (message) => {
+    const encryptedFileName = file.name + '.encrypted';
+    writeFile(directoryHandle, encryptedFileName, message.data as Uint8Array)
+      .then(() => {
+        callback(null);
+      })
+      .catch((e: Error) => {
+        callback(e);
+      });
+    worker.terminate();
+  });
 }
 
 export async function decryptFile(
   fileHandle: FileSystemFileHandle,
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
-  key: string
+  key: string,
+  callback: (err: Error | null) => void
 ): Promise<void> {
   const file = await fileHandle.getFile();
   const bytes = new Uint8Array(await file.arrayBuffer());
-  let decryptedBytes: Uint8Array;
+  let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    decryptedBytes = AES.decrypt(bytes, AESKey);
+    worker = new Worker(new URL('./workers/AES-D.ts', import.meta.url), { type: 'module' });
+    worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    decryptedBytes = await RSA.decrypt(bytes, rsakey);
+    worker = new Worker(new URL('./workers/RSA-D.ts', import.meta.url), { type: 'module' });
+    worker.postMessage({ bytes, rsakey });
   }
-  let decryptedFileName: string;
-  if (file.name.endsWith('.encrypted')) {
-    decryptedFileName = file.name.slice(0, file.name.length - 10);
-  } else {
-    decryptedFileName = file.name + '.decrypted';
-  }
-  const encryptedFile = await directoryHandle.getFileHandle(decryptedFileName, { create: true });
+
+  worker.addEventListener('message', (message) => {
+    let decryptedFileName: string;
+    if (file.name.endsWith('.encrypted')) {
+      decryptedFileName = file.name.slice(0, file.name.length - 10);
+    } else {
+      decryptedFileName = file.name + '.decrypted';
+    }
+    writeFile(directoryHandle, decryptedFileName, message.data as Uint8Array)
+      .then(() => {
+        callback(null);
+      })
+      .catch((e: Error) => {
+        callback(e);
+      });
+    worker.terminate();
+  });
+}
+
+async function writeFile(
+  directoryHandle: FileSystemDirectoryHandle,
+  encryptedFileName: string,
+  encryptedBytes: Uint8Array
+): Promise<void> {
+  const encryptedFile = await directoryHandle.getFileHandle(encryptedFileName, { create: true });
   const writeableEncryptedFile = await encryptedFile.createWritable();
-  await writeableEncryptedFile.write(decryptedBytes);
+  await writeableEncryptedFile.write(encryptedBytes);
   await writeableEncryptedFile.close();
 }
 
