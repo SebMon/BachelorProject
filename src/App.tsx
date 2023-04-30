@@ -25,23 +25,18 @@ init()
     console.error(e);
   });
 
-const settingsContextValue = new Settings();
+const settings = new Settings();
 
 function App(): JSX.Element {
+  // State and management of filesystem and selected files
   const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
   const [selectedFilesParentFolder, setSelectedFilesParentFolder] = useState<FileSystemDirectoryHandle | undefined>(
     undefined
   );
-
   const [fileSystemInvalidated, setFileSystemInvalidated] = useState<number>(0);
   const invalidateFileSystem = (): void => {
     setFileSystemInvalidated(fileSystemInvalidated + 1);
   };
-
-  const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
-  const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
-
   const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
     return {
       selectedFile,
@@ -53,6 +48,12 @@ function App(): JSX.Element {
     };
   }, [selectedFile, selectedFilesParentFolder, fileSystemInvalidated]);
 
+  // Manage dialogs
+  const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
+  const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+
+  // Manage running processes
   const [currentProcesses, setCurrentProcesses] = useState<Process[]>([]);
 
   const createProcess = (name: string): string => {
@@ -72,6 +73,7 @@ function App(): JSX.Element {
     setCurrentProcesses(newValue);
   };
 
+  // Event handlers
   const encryptSelected = (): void => {
     setEncryptionDialogVariant('encrypt');
     setShowEncryptionDialog(true);
@@ -87,29 +89,43 @@ function App(): JSX.Element {
 
     if (encryptionDialogVariant === 'encrypt') {
       const UUID = createProcess(`encrypting ${selectedFile.name}`);
-      await encryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
-        removeProcess(UUID);
-        if (e === null) {
-          invalidateFileSystem();
-        } else {
-          console.error(e);
+      await encryptFile(
+        selectedFile,
+        selectedFilesParentFolder,
+        type,
+        key,
+        await settings.getEncryptionEngine(),
+        (e) => {
+          removeProcess(UUID);
+          if (e === null) {
+            invalidateFileSystem();
+          } else {
+            console.error(e);
+          }
         }
-      });
+      );
     } else {
       const UUID = createProcess(`Decrypting ${selectedFile.name}`);
-      await decryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
-        removeProcess(UUID);
-        if (e === null) {
-          invalidateFileSystem();
-        } else {
-          console.error(e);
+      await decryptFile(
+        selectedFile,
+        selectedFilesParentFolder,
+        type,
+        key,
+        await settings.getEncryptionEngine(),
+        (e) => {
+          removeProcess(UUID);
+          if (e === null) {
+            invalidateFileSystem();
+          } else {
+            console.error(e);
+          }
         }
-      });
+      );
     }
   };
 
   return (
-    <settingsContext.Provider value={settingsContextValue}>
+    <settingsContext.Provider value={settings}>
       <selectedFileContext.Provider value={selectedFileContextValue}>
         <SettingsButton
           onClick={() => {
