@@ -50,6 +50,10 @@ export async function decryptFile(
   key: string,
   callback: (err: Error | null) => void
 ): Promise<void> {
+  // The following line forces the user to accept or reject the program writing to their filesystem immediately.
+  // If this is not done, the browser might not ask and make the writing of the encrypted file fail.
+  await (await fileHandle.createWritable({ keepExistingData: true })).close();
+
   const file = await fileHandle.getFile();
   const bytes = new Uint8Array(await file.arrayBuffer());
   let worker: Worker;

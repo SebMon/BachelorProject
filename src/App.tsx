@@ -10,7 +10,11 @@ import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
 import type { EncryptionType, Process } from './types/Encryption';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
-import FloatingActionButton from './components/FloatingActionButton';
+import ProcessIndicator from './components/ProcessIndicator';
+import { settingsContext } from './context/settingsContext';
+import { Settings } from './persistence/settings';
+import { SettingsButton } from './components/SettingsButton';
+import SettingsDialog from './components/SettingsDialog';
 
 // Example for demonstrating using wasm
 init()
@@ -20,6 +24,8 @@ init()
   .catch((e) => {
     console.error(e);
   });
+
+const settingsContextValue = new Settings();
 
 function App(): JSX.Element {
   const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
@@ -34,6 +40,7 @@ function App(): JSX.Element {
 
   const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
   const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
   const selectedFileContextValue = useMemo<SelectedFileContext>(() => {
     return {
@@ -102,31 +109,47 @@ function App(): JSX.Element {
   };
 
   return (
-    <selectedFileContext.Provider value={selectedFileContextValue}>
-      <div className="App row">
-        <div className="col-12 col-md-8 h-100 pt-5 px-5">
-          <FileExplorer />
-        </div>
-        <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
-          <FileMenu
-            fileName={selectedFile?.name}
-            onEncryptionRequested={encryptSelected}
-            onDecryptionRequested={decryptSelected}
-          />
-        </div>
-      </div>
+    <settingsContext.Provider value={settingsContextValue}>
+      <selectedFileContext.Provider value={selectedFileContextValue}>
+        <SettingsButton
+          onClick={() => {
+            setShowSettingsDialog(true);
+          }}
+        />
 
-      <EncryptDialog
-        show={showEncryptionDialog}
-        variant={encryptionDialogVariant}
-        onClose={() => {
-          setShowEncryptionDialog(false);
-        }}
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onEncrypt={encryptionTriggered}
-      />
-      {currentProcesses.length > 0 ? <FloatingActionButton items={currentProcesses} /> : null}
-    </selectedFileContext.Provider>
+        <div className="App row">
+          <div className="col-12 col-md-8 h-100 pt-5 px-5">
+            <FileExplorer />
+          </div>
+          <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
+            <FileMenu
+              fileName={selectedFile?.name}
+              onEncryptionRequested={encryptSelected}
+              onDecryptionRequested={decryptSelected}
+            />
+          </div>
+        </div>
+
+        <EncryptDialog
+          show={showEncryptionDialog}
+          variant={encryptionDialogVariant}
+          onClose={() => {
+            setShowEncryptionDialog(false);
+          }}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onEncrypt={encryptionTriggered}
+        />
+
+        <SettingsDialog
+          show={showSettingsDialog}
+          onClose={() => {
+            setShowSettingsDialog(false);
+          }}
+        />
+
+        {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
+      </selectedFileContext.Provider>
+    </settingsContext.Provider>
   );
 }
 
