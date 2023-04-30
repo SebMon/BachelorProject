@@ -48,7 +48,6 @@ export async function decrypt(input: Uint8Array, key: RSAKey): Promise<Uint8Arra
   const output = new Uint8Array(blockLength * blocks);
 
   for (let i = 0; i < blocks - 1; i++) {
-
     output.set(
       await RSAES_OAEP_DECRYPT(moduloExponentSet, input.slice(i * keyLength, (i + 1) * keyLength)),
       i * blockLength
@@ -60,7 +59,7 @@ export async function decrypt(input: Uint8Array, key: RSAKey): Promise<Uint8Arra
     moduloExponentSet,
     input.slice((blocks - 1) * keyLength, blocks * keyLength)
   );
-  
+
   output.set(lastBlock, (blocks - 1) * blockLength);
 
   return output.slice(0, output.length - (blockLength - lastBlock.length));
