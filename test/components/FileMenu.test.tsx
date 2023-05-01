@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import FileMenu from '../../src/components/FileMenu';
-import React, { createContext } from 'react';
+import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
 import { selectedFileContext } from '../../src/context/SelectedFileContext';
 import type { SelectedFileContext } from '../../src/context/SelectedFileContext';
