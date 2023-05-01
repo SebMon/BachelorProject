@@ -129,6 +129,20 @@ function App(): JSX.Element {
     }
   };
 
+  const getTabTitle = (): string => {
+    if (currentProcesses.length === 0) {
+      return 'Encryption';
+    }
+
+    if (currentProcesses.length === 1) {
+      return currentProcesses[0].name;
+    }
+
+    return `Encrypting ${currentProcesses.length} files`;
+  };
+
+  document.title = getTabTitle();
+
   return (
     <settingsContext.Provider value={settings}>
       <selectedFileContext.Provider value={selectedFileContextValue}>
