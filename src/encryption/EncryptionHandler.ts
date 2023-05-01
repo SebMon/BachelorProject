@@ -1,10 +1,16 @@
 import { EncryptionType } from '../types/Encryption';
-import * as AES from './AES';
 import { PrivateKeyFromPem, PublicKeyFromPem } from './RSA/keys';
-import * as RSA from './RSA';
 import type { RSAKey } from './RSA/keys';
 import { hexToBytes } from './encodeDecode';
 import { EncryptionEngine } from '../persistence/settings';
+import AES_D_js_url from './workers/AES-D-js?worker&url';
+import AES_D_wasm_url from './workers/AES-D-wasm.ts?worker&url';
+import AES_E_js_url from './workers/AES-E-js.ts?worker&url';
+import AES_E_wasm_url from './workers/AES-E-wasm.ts?worker&url';
+import RSA_D_js_url from './workers/RSA-D-js.ts?worker&url';
+import RSA_D_wasm_url from './workers/RSA-D-wasm.ts?worker&url';
+import RSA_E_js_url from './workers/RSA-E-js.ts?worker&url';
+import RSA_E_wasm_url from './workers/RSA-E-wasm.ts?worker&url';
 
 export async function encryptFile(
   fileHandle: FileSystemFileHandle,
@@ -24,18 +30,12 @@ export async function encryptFile(
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    const url =
-      engine === EncryptionEngine.js
-        ? new URL('./workers/AES-E-js.ts', import.meta.url)
-        : new URL('./workers/AES-E-wasm.ts', import.meta.url);
+    const url = engine === EncryptionEngine.js ? AES_E_js_url : AES_E_wasm_url;
     worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    const url =
-      engine === EncryptionEngine.js
-        ? new URL('./workers/RSA-E-js.ts', import.meta.url)
-        : new URL('./workers/RSA-E-wasm.ts', import.meta.url);
+    const url = engine === EncryptionEngine.js ? RSA_E_js_url : RSA_E_wasm_url;
     worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, rsakey });
   }
@@ -70,18 +70,12 @@ export async function decryptFile(
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    const url =
-      engine === EncryptionEngine.js
-        ? new URL('./workers/AES-D-js.ts', import.meta.url)
-        : new URL('./workers/AES-D-wasm.ts', import.meta.url);
+    const url = engine === EncryptionEngine.js ? AES_D_js_url : AES_D_wasm_url;
     worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    const url =
-      engine === EncryptionEngine.js
-        ? new URL('./workers/RSA-D-js.ts', import.meta.url)
-        : new URL('./workers/RSA-D-wasm.ts', import.meta.url);
+    const url = engine === EncryptionEngine.js ? RSA_D_js_url : RSA_D_wasm_url;
     worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, rsakey });
   }
