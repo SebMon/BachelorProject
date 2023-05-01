@@ -39,7 +39,7 @@ export default function Folder(props: FolderProps): JSX.Element {
       <div className="row">
         <div
           role="button"
-          className="d-flex col-1 mt-1"
+          className="d-flex col-1 mt-1 px-0"
           onClick={() => {
             setExpanded(!expanded);
           }}
