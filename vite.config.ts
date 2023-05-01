@@ -11,6 +11,21 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm}']
+      },
+      manifest: {
+        name: 'Encryption Application',
+        start_url: '/',
+        id: '/',
+        short_name: 'crypto',
+        description: '',
+        theme_color: '#261f52',
+        icons: [
+          {
+            src: '/vite.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
+          }
+        ]
       }
     })
   ],
