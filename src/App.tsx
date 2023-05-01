@@ -157,11 +157,7 @@ function App(): JSX.Element {
             <FileExplorer />
           </div>
           <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
-            <FileMenu
-              fileName={selectedFile?.name}
-              onEncryptionRequested={encryptSelected}
-              onDecryptionRequested={decryptSelected}
-            />
+            <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
           </div>
         </div>
 
