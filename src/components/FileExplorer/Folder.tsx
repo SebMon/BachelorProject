@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import File from './File';
-import { selectedFileContext } from '../context/SelectedFileContext';
+import { selectedFileContext } from '../../context/SelectedFileContext';
 
 interface FolderProps {
   handle: FileSystemDirectoryHandle;

@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { LegacyRef } from 'react';
 import { Dropdown } from 'react-bootstrap';
-import type { Process } from '../types/Encryption';
+import type { Process } from '../App';
 
 interface CustomToggleProps {
   onClick: () => void;

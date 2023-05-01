@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import Folder from './Folder';
-import { selectedFileContext } from '../context/SelectedFileContext';
+import { selectedFileContext } from '../../context/SelectedFileContext';
 
 let didInit = false;
 

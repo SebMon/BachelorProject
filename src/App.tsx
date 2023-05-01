@@ -2,13 +2,13 @@ import React, { useMemo, useState } from 'react';
 import './App.css';
 import init, { fib } from 'src-wasm';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import FileExplorer from './components/FileExplorer';
+import FileExplorer from './components/FileExplorer/FileExplorer';
 import FileMenu from './components/FileMenu';
 import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
-import type { EncryptionType, Process } from './types/Encryption';
+import type { EncryptionType } from './encryption/EncryptionType';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 import ProcessIndicator from './components/ProcessIndicator';
 import { settingsContext } from './context/settingsContext';
@@ -26,6 +26,11 @@ init()
   });
 
 const settings = new Settings();
+
+export interface Process {
+  UUID: string;
+  name: string;
+}
 
 function App(): JSX.Element {
   // State and management of filesystem and selected files

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { selectedFileContext } from '../context/SelectedFileContext';
+import { selectedFileContext } from '../../context/SelectedFileContext';
 
 interface FileProps {
   handle: FileSystemFileHandle;
