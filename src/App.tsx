@@ -79,7 +79,7 @@ function App(): JSX.Element {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
 
     if (encryptionDialogVariant === 'encrypt') {
-      const UUID = createProcess(`encrypting ${selectedFile.name}`);
+      const UUID = createProcess(`Encrypting ${selectedFile.name}`);
       await encryptFile(selectedFile, selectedFilesParentFolder, type, key, (e) => {
         removeProcess(UUID);
         if (e === null) {
@@ -100,6 +100,20 @@ function App(): JSX.Element {
       });
     }
   };
+
+  const getTabTitle = (): string => {
+    if (currentProcesses.length === 0) {
+      return 'Encryption';
+    }
+
+    if (currentProcesses.length === 1) {
+      return currentProcesses[0].name;
+    }
+
+    return `Encrypting ${currentProcesses.length} files`;
+  };
+
+  document.title = getTabTitle();
 
   return (
     <selectedFileContext.Provider value={selectedFileContextValue}>
