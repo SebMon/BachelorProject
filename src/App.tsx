@@ -93,7 +93,7 @@ function App(): JSX.Element {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
 
     if (encryptionDialogVariant === 'encrypt') {
-      const UUID = createProcess(`encrypting ${selectedFile.name}`);
+      const UUID = createProcess(`Encrypting ${selectedFile.name}`);
       await encryptFile(
         selectedFile,
         selectedFilesParentFolder,
