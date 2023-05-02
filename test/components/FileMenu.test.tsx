@@ -1,33 +1,49 @@
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import FileMenu from '../../src/components/FileMenu';
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
+import { selectedFileContext } from '../../src/context/SelectedFileContext';
+import type { SelectedFileContext } from '../../src/context/SelectedFileContext';
+import { mock } from 'vitest-mock-extended';
 
 const fileName = 'a test file';
 const encryptCallback = vi.fn();
 const decryptCallback = vi.fn();
 
+const directoryHandleRemoveEntry = vi.fn();
+
 const renderWithFileSelected = (): void => {
+  const contextMock = mock<SelectedFileContext>({
+    selectedFile: mock<FileSystemFileHandle>({ name: fileName }),
+    selectedFilesParentFolder: mock<FileSystemDirectoryHandle>({ removeEntry: directoryHandleRemoveEntry })
+  });
+
   render(
-    <FileMenu fileName={fileName} onEncryptionRequested={encryptCallback} onDecryptionRequested={decryptCallback} />
+    <selectedFileContext.Provider value={contextMock}>
+      <FileMenu onEncryptionRequested={encryptCallback} onDecryptionRequested={decryptCallback} />
+    </selectedFileContext.Provider>
+  );
+
+  vi.stubGlobal(
+    'confirm',
+    vi.fn().mockImplementation(() => true)
   );
 };
 
 const renderWithoutFileSelected = (): void => {
-  render(
-    <FileMenu fileName={undefined} onEncryptionRequested={encryptCallback} onDecryptionRequested={decryptCallback} />
-  );
+  render(<FileMenu onEncryptionRequested={encryptCallback} onDecryptionRequested={decryptCallback} />);
 };
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 it('shows the filename when rendered', () => {
   renderWithFileSelected();
 
-  const fileNameElement = screen.queryByText('a test file');
+  const fileNameElement = screen.queryByDisplayValue(fileName);
   expect(fileNameElement).not.toBeNull();
 });
 
@@ -61,4 +77,14 @@ it('calls the decryption callback, when the Decrypt button is pressed', () => {
   const decryptButton = screen.queryByText('Decrypt');
   decryptButton?.click();
   expect(decryptCallback).not.toHaveBeenCalledOnce();
+});
+
+it('calls removeEntry on folder when the delete button is pressed', () => {
+  renderWithFileSelected();
+
+  const deleteButton = screen.queryByTestId('delete-button');
+  expect(deleteButton).not.toBeNull();
+
+  deleteButton?.click();
+  expect(directoryHandleRemoveEntry).toHaveBeenCalledWith(fileName);
 });
