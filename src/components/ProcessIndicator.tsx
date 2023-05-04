@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { LegacyRef } from 'react';
 import { Dropdown } from 'react-bootstrap';
-import type { Process } from '../types/Encryption';
+import type { Process } from '../App';
 
 interface CustomToggleProps {
   onClick: () => void;
@@ -15,11 +15,11 @@ const CustomToggle = forwardRef(
   )
 );
 
-interface FloatingActionButtonProps {
+interface ProcessIndicatorProps {
   items: Process[];
 }
 
-export default function FloatingActionButton(props: FloatingActionButtonProps): JSX.Element {
+export default function ProcessIndicator(props: ProcessIndicatorProps): JSX.Element {
   return (
     <Dropdown drop="up" className="position-absolute bottom-0 end-0 m-4 rounded-circle">
       <Dropdown.Toggle as={CustomToggle}></Dropdown.Toggle>

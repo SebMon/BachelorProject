@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import EncryptDialog from '../../src/components/EncryptDialog';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { EncryptionType } from '../../src/types/Encryption';
+import { EncryptionType } from '../../src/encryption/EncryptionType';
 
 const encryptCallback = vi.fn();
 const closeCallback = vi.fn();

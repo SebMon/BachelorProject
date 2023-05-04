@@ -84,8 +84,7 @@ pub fn rsaes_oaep_decrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) 
 
   if k < 2 * H_LEN + 2 {
     panic!("Decryption error");
-  }
-  
+  }  
 
   let c = os2ip(&input);
 
@@ -103,6 +102,8 @@ pub fn rsaes_oaep_decrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) 
   let db_mask = mgf(&seed, k - H_LEN - 1);
 
   let db = xor(&masked_db, &db_mask);
+
+  
 
   for i in 0..H_LEN {
     if db[i] != L_HASH[i] {

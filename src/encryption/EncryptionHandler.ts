@@ -1,15 +1,23 @@
-import { EncryptionType } from '../types/Encryption';
-import * as AES from './AES';
+import { EncryptionType } from './EncryptionType';
 import { PrivateKeyFromPem, PublicKeyFromPem } from './RSA/keys';
-import * as RSA from './RSA';
 import type { RSAKey } from './RSA/keys';
 import { hexToBytes } from './encodeDecode';
+import { EncryptionEngine } from '../persistence/settings';
+import AES_D_js_url from './workers/AES-D-js?worker&url';
+import AES_D_wasm_url from './workers/AES-D-wasm.ts?worker&url';
+import AES_E_js_url from './workers/AES-E-js.ts?worker&url';
+import AES_E_wasm_url from './workers/AES-E-wasm.ts?worker&url';
+import RSA_D_js_url from './workers/RSA-D-js.ts?worker&url';
+import RSA_D_wasm_url from './workers/RSA-D-wasm.ts?worker&url';
+import RSA_E_js_url from './workers/RSA-E-js.ts?worker&url';
+import RSA_E_wasm_url from './workers/RSA-E-wasm.ts?worker&url';
 
 export async function encryptFile(
   fileHandle: FileSystemFileHandle,
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
   key: string,
+  engine: EncryptionEngine,
   callback: (err: Error | null) => void
 ): Promise<void> {
   // The following line forces the user to accept or reject the program writing to their filesystem immediately.
@@ -22,11 +30,13 @@ export async function encryptFile(
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    worker = new Worker(new URL('./workers/AES-E.ts', import.meta.url), { type: 'module' });
+    const url = engine === EncryptionEngine.js ? AES_E_js_url : AES_E_wasm_url;
+    worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    worker = new Worker(new URL('./workers/RSA-E.ts', import.meta.url), { type: 'module' });
+    const url = engine === EncryptionEngine.js ? RSA_E_js_url : RSA_E_wasm_url;
+    worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, rsakey });
   }
 
@@ -48,18 +58,25 @@ export async function decryptFile(
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
   key: string,
+  engine: EncryptionEngine,
   callback: (err: Error | null) => void
 ): Promise<void> {
+  // The following line forces the user to accept or reject the program writing to their filesystem immediately.
+  // If this is not done, the browser might not ask and make the writing of the encrypted file fail.
+  await (await fileHandle.createWritable({ keepExistingData: true })).close();
+
   const file = await fileHandle.getFile();
   const bytes = new Uint8Array(await file.arrayBuffer());
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
     const AESKey = hexToBytes(key);
-    worker = new Worker(new URL('./workers/AES-D.ts', import.meta.url), { type: 'module' });
+    const url = engine === EncryptionEngine.js ? AES_D_js_url : AES_D_wasm_url;
+    worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, AESKey });
   } else {
     const rsakey = await parseRSAKey(key);
-    worker = new Worker(new URL('./workers/RSA-D.ts', import.meta.url), { type: 'module' });
+    const url = engine === EncryptionEngine.js ? RSA_D_js_url : RSA_D_wasm_url;
+    worker = new Worker(url, { type: 'module' });
     worker.postMessage({ bytes, rsakey });
   }
 

@@ -1,12 +1,8 @@
 import * as AES from '../AES';
-
-interface Request {
-  bytes: Uint8Array;
-  AESKey: Uint8Array;
-}
+import type { AESRequest } from './types';
 
 self.onmessage = (message): void => {
-  const req = message.data as Request;
+  const req = message.data as AESRequest;
   const bytes = AES.encrypt(req.bytes, req.AESKey);
   self.postMessage(bytes);
 };
