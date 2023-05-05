@@ -41,6 +41,7 @@ pub fn rsaes_oaep_encrypt (modulo: &Vec<u8>, exponent: &Vec<u8>, mut input: Vec<
   }
 
   let mut ps: Vec<u8> = vec![0; k - input.len() - 2 * H_LEN - 2];
+
   let mut db: Vec<u8> = Vec::new();
 
   db.append(&mut L_HASH.to_vec());
@@ -59,7 +60,6 @@ pub fn rsaes_oaep_encrypt (modulo: &Vec<u8>, exponent: &Vec<u8>, mut input: Vec<
   let mut masked_db = xor(&db, &db_mask);
   let seed_mask = mgf(&masked_db, H_LEN);
   let mut masked_seed = xor(&seed, &seed_mask);
-  
 
   let mut em: Vec<u8> = Vec::new();
   em.push(0); 
@@ -103,8 +103,6 @@ pub fn rsaes_oaep_decrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) 
 
   let db = xor(&masked_db, &db_mask);
 
-  
-
   for i in 0..H_LEN {
     if db[i] != L_HASH[i] {
       panic!("Decryption error");
@@ -120,15 +118,20 @@ pub fn rsaes_oaep_decrypt(modulo: &Vec<u8>, exponent: &Vec<u8>, input: Vec<u8>) 
   db[i..db.len()].to_vec()
 }
 
+// Something is wrong here -> the last few bits are just 0
 fn mgf(mgf_seed: &[u8], mask_len: usize) -> Vec<u8> {
   if mask_len as u64 > (2_u64.pow(32)) * (H_LEN as u64) {
     panic!("Mask too long");
   }
 
-  let mut t: Vec<u8> = Vec::new();
+  let mut t: Vec<u8> = vec![0; mask_len + (mask_len - (mask_len % H_LEN))];
 
-  for i in 0.. mask_len / H_LEN {
-    let mut c = i2osp(i.into(), 4);
+  let f_mask_len = mask_len as f32;
+  let f_h_len = H_LEN as f32;
+
+  let mut i: usize = 0;
+  while i < (f_mask_len / f_h_len).ceil() as usize {
+    let mut c = i2osp((i as usize).into(), 4);
     let mut concated: Vec<u8> = Vec::new();
     concated.append(&mut mgf_seed.clone().to_vec());
     concated.append(&mut c);
@@ -138,10 +141,9 @@ fn mgf(mgf_seed: &[u8], mask_len: usize) -> Vec<u8> {
 
     let mut hasher = sha1_smol::Sha1::new();
     hasher.update(&concated);
-    t.append(&mut hasher.digest().bytes().to_vec());
-  }
-  while t.len() < mask_len + (mask_len - (mask_len % H_LEN)) {
-    t.push(0);
+    t = set_vector(t, hasher.digest().bytes().to_vec(), i * H_LEN);
+
+    i += 1;
   }
 
   t[0..mask_len].to_vec()
@@ -213,4 +215,14 @@ fn mod_exp(mut base: UBig, mut exponent: UBig, modulo: UBig) -> UBig {
     base = base.pow(2) % &modulo;
   }  
   result
+}
+
+fn set_vector(mut target: Vec<u8>, input: Vec<u8>, offset: usize) -> Vec<u8> {
+  if target.len() - offset < input.len() {
+    panic!("no room for vector");
+  }
+  for i in offset..(offset + input.len()) {
+    target[i] = input[i - offset];
+  }
+  return target
 }
