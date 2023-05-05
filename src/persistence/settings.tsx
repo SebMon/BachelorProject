@@ -33,7 +33,7 @@ export class Settings extends Dexie {
   async getEncryptionEngine(): Promise<EncryptionEngine> {
     const object = await this.settings.get(ENCRYPTION_ENGINE);
 
-    if (object === undefined || !(object.value in EncryptionEngine)) {
+    if (object === undefined || !Object.values(EncryptionEngine).includes(object.value as EncryptionEngine)) {
       await this.settings.put({ key: ENCRYPTION_ENGINE, value: EncryptionEngine.wasm });
       return EncryptionEngine.wasm;
     }
@@ -48,7 +48,7 @@ export class Settings extends Dexie {
   async getNotificationLevel(): Promise<NotificationLevel> {
     const object = await this.settings.get(NOTIFICATION_LEVEL);
 
-    if (object === undefined || !(object.value in NotificationLevel)) {
+    if (object === undefined || !Object.values(NotificationLevel).includes(object.value as NotificationLevel)) {
       await this.settings.put({ key: NOTIFICATION_LEVEL, value: NotificationLevel.always });
       return NotificationLevel.always;
     }
