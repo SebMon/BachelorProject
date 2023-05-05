@@ -44,6 +44,7 @@ export default function SettingsDialog(props: SettingsDialogProps): JSX.Element 
         <Form.Label htmlFor="notificationLevelSelect">Show notifications after encryption/decryption</Form.Label>
         <Form.Select id="notificationLevelSelect" value={notificationLevel} onChange={onNotificationLevelChanged}>
           <option value={NotificationLevel.always}>Always</option>
+          <option value={NotificationLevel.onlyWhenOutOfFocus}>Only when the app is out of focus</option>
           <option value={NotificationLevel.never}>Never</option>
         </Form.Select>
       </Modal.Body>

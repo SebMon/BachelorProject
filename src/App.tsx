@@ -32,6 +32,16 @@ export interface Process {
   name: string;
 }
 
+let windowHasFocus = true;
+
+window.addEventListener('focus', () => {
+  windowHasFocus = true;
+});
+
+window.addEventListener('blur', () => {
+  windowHasFocus = false;
+});
+
 function App(): JSX.Element {
   // State and management of filesystem and selected files
   const [selectedFile, setSelectedFile] = useState<FileSystemFileHandle | undefined>(undefined);
@@ -88,7 +98,15 @@ function App(): JSX.Element {
 
       const notificationLevel = await settings.getNotificationLevel();
 
-      if (permission === 'granted' && notificationLevel === NotificationLevel.always) {
+      if (permission !== 'granted') {
+        return;
+      }
+
+      const notificationsAlwaysEnabled = notificationLevel === NotificationLevel.always;
+
+      const notificationsEnabledWhenWindowIsOutOfFocus = notificationLevel === NotificationLevel.onlyWhenOutOfFocus;
+
+      if (notificationsAlwaysEnabled || (notificationsEnabledWhenWindowIsOutOfFocus && !windowHasFocus)) {
         // eslint-disable-next-line no-new
         new Notification(text);
       }

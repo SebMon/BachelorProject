@@ -15,6 +15,7 @@ export enum EncryptionEngine {
 
 export enum NotificationLevel {
   never = 'never',
+  onlyWhenOutOfFocus = 'outOfFocus',
   always = 'always'
 }
 
@@ -32,12 +33,12 @@ export class Settings extends Dexie {
   async getEncryptionEngine(): Promise<EncryptionEngine> {
     const object = await this.settings.get(ENCRYPTION_ENGINE);
 
-    if (object === undefined || !(object.value === EncryptionEngine.js || object.value === EncryptionEngine.wasm)) {
+    if (object === undefined || !(object.value in EncryptionEngine)) {
       await this.settings.put({ key: ENCRYPTION_ENGINE, value: EncryptionEngine.wasm });
       return EncryptionEngine.wasm;
     }
 
-    return object.value;
+    return object.value as EncryptionEngine;
   }
 
   async setEncryptionEngine(value: EncryptionEngine): Promise<void> {
@@ -47,15 +48,12 @@ export class Settings extends Dexie {
   async getNotificationLevel(): Promise<NotificationLevel> {
     const object = await this.settings.get(NOTIFICATION_LEVEL);
 
-    if (
-      object === undefined ||
-      !(object.value === NotificationLevel.always || object.value === NotificationLevel.never)
-    ) {
+    if (object === undefined || !(object.value in NotificationLevel)) {
       await this.settings.put({ key: NOTIFICATION_LEVEL, value: NotificationLevel.always });
       return NotificationLevel.always;
     }
 
-    return object.value;
+    return object.value as NotificationLevel;
   }
 
   async setNotificationLevel(value: NotificationLevel): Promise<void> {
