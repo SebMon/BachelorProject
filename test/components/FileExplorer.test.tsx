@@ -1,6 +1,6 @@
 import { it, expect, afterEach, vi, assert } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
-import FileExplorer from '../../src/components/FileExplorer';
+import FileExplorer from '../../src/components/FileExplorer/FileExplorer';
 import React from 'react';
 import { instance, mock, when } from 'ts-mockito';
 import userEvent from '@testing-library/user-event';

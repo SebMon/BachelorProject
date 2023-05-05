@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import init, { fib } from 'src-wasm';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -143,6 +143,23 @@ function App(): JSX.Element {
 
   document.title = getTabTitle();
 
+  const [failHeader, setFailHeader] = useState('Fail: ');
+  const [successHeader, setSuccessHeader] = useState('Success: ');
+
+  useEffect(() => {
+    if ('launchQueue' in window && 'LaunchParams' in window) {
+      // eslint-disable-next-line
+      (window as any).launchQueue.setConsumer((launchParams: { files: any[] }) => {
+        // eslint-disable-next-line
+        if (!launchParams.files.length) {
+          setFailHeader('Fail: No files');
+          return;
+        }
+        setSuccessHeader('Success: Some file(s) present');
+      });
+    }
+  }, []);
+
   return (
     <settingsContext.Provider value={settings}>
       <selectedFileContext.Provider value={selectedFileContextValue}>
@@ -153,6 +170,8 @@ function App(): JSX.Element {
         />
 
         <div className="App row">
+          <h1 className="text-light">{failHeader}</h1>
+          <h1 className="text-light">{successHeader}</h1>
           <div className="col-12 col-md-8 h-100 pt-5 px-5">
             <FileExplorer />
           </div>

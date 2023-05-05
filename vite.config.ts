@@ -25,6 +25,14 @@ export default defineConfig({
             sizes: 'any',
             type: 'image/svg+xml'
           }
+        ],
+        file_handlers: [
+          {
+            action: '/',
+            accept: {
+              'text/plain': ['.test-app']
+            }
+          }
         ]
       }
     })
