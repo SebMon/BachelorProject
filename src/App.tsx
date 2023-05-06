@@ -12,7 +12,7 @@ import type { EncryptionType } from './encryption/EncryptionType';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 import ProcessIndicator from './components/ProcessIndicator';
 import { settingsContext } from './context/settingsContext';
-import { Settings } from './persistence/settings';
+import { NotificationLevel, Settings } from './persistence/settings';
 import { SettingsButton } from './components/SettingsButton';
 import SettingsDialog from './components/SettingsDialog';
 
@@ -31,6 +31,16 @@ export interface Process {
   UUID: string;
   name: string;
 }
+
+let windowHasFocus = true;
+
+window.addEventListener('focus', () => {
+  windowHasFocus = true;
+});
+
+window.addEventListener('blur', () => {
+  windowHasFocus = false;
+});
 
 function App(): JSX.Element {
   // State and management of filesystem and selected files
@@ -78,6 +88,35 @@ function App(): JSX.Element {
     setCurrentProcesses(newValue);
   };
 
+  const requestNotificationPermission = async (): Promise<void> => {
+    await Notification.requestPermission();
+  };
+
+  const notifyUser = (text: string): void => {
+    const run = async (): Promise<void> => {
+      const permission = await Notification.requestPermission();
+
+      const notificationLevel = await settings.getNotificationLevel();
+
+      if (permission !== 'granted') {
+        return;
+      }
+
+      const notificationsAlwaysEnabled = notificationLevel === NotificationLevel.always;
+
+      const notificationsEnabledWhenWindowIsOutOfFocus = notificationLevel === NotificationLevel.onlyWhenOutOfFocus;
+
+      if (notificationsAlwaysEnabled || (notificationsEnabledWhenWindowIsOutOfFocus && !windowHasFocus)) {
+        // eslint-disable-next-line no-new
+        new Notification(text);
+      }
+    };
+
+    run().catch(() => {
+      console.error('failed to show notification');
+    });
+  };
+
   // Event handlers
   const encryptSelected = (): void => {
     setEncryptionDialogVariant('encrypt');
@@ -92,6 +131,8 @@ function App(): JSX.Element {
   const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
 
+    await requestNotificationPermission();
+
     if (encryptionDialogVariant === 'encrypt') {
       const UUID = createProcess(`Encrypting ${selectedFile.name}`);
       await encryptFile(
@@ -104,6 +145,7 @@ function App(): JSX.Element {
           removeProcess(UUID);
           if (e === null) {
             invalidateFileSystem();
+            notifyUser(`Successfully encrypted ${selectedFile.name}`);
           } else {
             console.error(e);
           }
@@ -121,6 +163,7 @@ function App(): JSX.Element {
           removeProcess(UUID);
           if (e === null) {
             invalidateFileSystem();
+            notifyUser(`Successfully decrypted ${selectedFile.name}`);
           } else {
             console.error(e);
           }

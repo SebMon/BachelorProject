@@ -1,19 +1,26 @@
 import Dexie from 'dexie';
 
 const ENCRYPTION_ENGINE = 'encryptionEngine';
+const NOTIFICATION_LEVEL = 'notificationLevel';
+
+interface SettingTableEntry {
+  key: string;
+  value: string;
+}
 
 export enum EncryptionEngine {
   wasm = 'wasm',
   js = 'js'
 }
 
-interface Setting {
-  key: string;
-  value: string;
+export enum NotificationLevel {
+  never = 'never',
+  onlyWhenOutOfFocus = 'outOfFocus',
+  always = 'always'
 }
 
 export class Settings extends Dexie {
-  settings!: Dexie.Table<Setting, string>;
+  settings!: Dexie.Table<SettingTableEntry, string>;
 
   constructor() {
     super('SettingsDatabase');
@@ -26,15 +33,30 @@ export class Settings extends Dexie {
   async getEncryptionEngine(): Promise<EncryptionEngine> {
     const object = await this.settings.get(ENCRYPTION_ENGINE);
 
-    if (object === undefined || !(object.value === EncryptionEngine.js || object.value === EncryptionEngine.wasm)) {
+    if (object === undefined || !Object.values(EncryptionEngine).includes(object.value as EncryptionEngine)) {
       await this.settings.put({ key: ENCRYPTION_ENGINE, value: EncryptionEngine.wasm });
       return EncryptionEngine.wasm;
     }
 
-    return object.value;
+    return object.value as EncryptionEngine;
   }
 
   async setEncryptionEngine(value: EncryptionEngine): Promise<void> {
     await this.settings.put({ key: ENCRYPTION_ENGINE, value });
+  }
+
+  async getNotificationLevel(): Promise<NotificationLevel> {
+    const object = await this.settings.get(NOTIFICATION_LEVEL);
+
+    if (object === undefined || !Object.values(NotificationLevel).includes(object.value as NotificationLevel)) {
+      await this.settings.put({ key: NOTIFICATION_LEVEL, value: NotificationLevel.always });
+      return NotificationLevel.always;
+    }
+
+    return object.value as NotificationLevel;
+  }
+
+  async setNotificationLevel(value: NotificationLevel): Promise<void> {
+    await this.settings.put({ key: NOTIFICATION_LEVEL, value });
   }
 }
