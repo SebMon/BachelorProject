@@ -40,6 +40,7 @@ export default function Folder(props: FolderProps): JSX.Element {
         <div
           role="button"
           className="d-flex col-1 mt-1 px-0"
+          aria-label="expand-button"
           onClick={() => {
             setExpanded(!expanded);
           }}
