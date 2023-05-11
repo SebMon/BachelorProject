@@ -1,84 +1,70 @@
-import { it, expect, afterEach, vi, assert } from 'vitest';
+import { it, afterEach, vi, assert, beforeEach } from 'vitest';
 import { render, cleanup, screen } from '@testing-library/react';
-import FileExplorer from '../../src/components/FileExplorer';
+import FileExplorer from '../../src/components/FileExplorer/FileExplorer';
 import React from 'react';
-import { instance, mock, when } from 'ts-mockito';
+import { mock } from 'vitest-mock-extended';
 import userEvent from '@testing-library/user-event';
 
-afterEach(() => {
-  cleanup();
-});
-
-it('displays the correct buttons', () => {
-  // Arrange
-  render(<FileExplorer />);
-  const buttonArray: string[] = [];
-
-  // Act
-  screen.getAllByRole('button').forEach((value) => {
-    if (value.textContent !== null) buttonArray.push(value.textContent);
-  });
-
-  // Assert
-  expect(buttonArray).toContain('Select Folder');
-  expect(buttonArray).toContain('Close Folder');
-});
-
-/*
-it('renders folders', async () => {
+beforeEach(() => {
   // Arange
   render(<FileExplorer />);
 
-  const mockedFileSystemFileHandle: FileSystemFileHandle = mock(FileSystemFileHandle);
-  const mockedFileSystemDirectoryHandle: FileSystemDirectoryHandle = mock(FileSystemDirectoryHandle);
+  const mainDirectoryHandle = mock<FileSystemDirectoryHandle>({ name: 'Main Folder', kind: 'directory' });
+  const directoryHandle = mock<FileSystemDirectoryHandle>({ name: 'Folder', kind: 'directory' });
+  const filehandle1 = mock<FileSystemFileHandle>({ name: 'File 1', kind: 'file' });
+  const filehandle2 = mock<FileSystemFileHandle>({ name: 'File 2', kind: 'file' });
 
-  const mainDirectoryHandle: FileSystemDirectoryHandle = instance(mockedFileSystemDirectoryHandle);
-  const directoryHandle: FileSystemDirectoryHandle = instance(mockedFileSystemDirectoryHandle);
-  const filehandle1: FileSystemFileHandle = instance(mockedFileSystemFileHandle);
-  const filehandle2: FileSystemFileHandle = instance(mockedFileSystemFileHandle);
-
-  const values = {
+  const values1 = {
+    // eslint-disable-next-line
     async *[Symbol.asyncIterator]() {
-      yield await new Promise<FileSystemDirectoryHandle>((resolve, _reject) => {
-        resolve(directoryHandle);
-      });
-      yield await new Promise<FileSystemFileHandle>((resolve, _reject) => {
-        resolve(filehandle1);
-      });
+      yield filehandle2;
     }
   };
+
+  directoryHandle.values.mockReturnValue(values1[Symbol.asyncIterator]());
 
   const values2 = {
+    // eslint-disable-next-line
     async *[Symbol.asyncIterator]() {
-      yield await new Promise<FileSystemFileHandle>((resolve, _reject) => {
-        resolve(filehandle2);
-      });
+      yield directoryHandle;
+      yield filehandle1;
     }
   };
 
-  when(mainDirectoryHandle.name).thenReturn('Main Folder');
-  when(mainDirectoryHandle.values()).thenReturn(values[Symbol.asyncIterator]());
+  mainDirectoryHandle.values.mockReturnValue(values2[Symbol.asyncIterator]());
 
-  when(directoryHandle.name).thenReturn('Folder');
-  when(directoryHandle.values()).thenReturn(values2[Symbol.asyncIterator]());
-
-  when(filehandle1.name).thenReturn('File 1');
-  when(filehandle2.name).thenReturn('File 2');
-
-  vi.fn(window.showDirectoryPicker).mockImplementation(
-    async () =>
-      await new Promise<FileSystemDirectoryHandle>((resolve, _reject) => {
-        resolve(mainDirectoryHandle);
-      })
+  vi.stubGlobal(
+    'showDirectoryPicker',
+    vi.fn().mockImplementation(async () => await Promise.resolve(mainDirectoryHandle))
   );
+});
 
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+it('displays the correct buttons', () => {
+  // Assert
+  assert(screen.getByText('Select Folder', { selector: 'button' }) != null);
+  assert(screen.getByText('Close Folder', { selector: 'button' }) != null);
+});
+
+it('renders initially opened folder', async () => {
   // Act
-  await userEvent.click(screen.getByDisplayValue('Select Folder'));
+  await userEvent.click(screen.getByText('Select Folder', { selector: 'button' }));
 
   // Assert
-  assert(screen.getByDisplayValue('Main Folder') !== null);
-  assert(screen.getByDisplayValue('Folder') !== null);
-  assert(screen.getByDisplayValue('File 1') !== null);
-  assert(screen.getByDisplayValue('File 2') !== null);
+  assert(screen.getByText('Main Folder') !== null);
 });
-*/
+
+it('renders subfolders and files', async () => {
+  // Act
+  await userEvent.click(screen.getByText('Select Folder', { selector: 'button' }));
+  await userEvent.click(screen.getByRole('button', { name: /expand-button/i }));
+
+  // Assert
+  assert(screen.getByText('Main Folder') !== null);
+  assert(screen.getByText('Folder') !== null);
+  assert(screen.getByText('File 1') !== null);
+});
