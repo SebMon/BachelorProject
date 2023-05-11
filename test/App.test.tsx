@@ -15,6 +15,7 @@ beforeEach(() => {
       fib: vi.fn(() => 1)
     };
   });
+  vi.mock('../src/persistence/settings');
 });
 
 afterEach(cleanup);
