@@ -19,7 +19,6 @@ export default function FileMenu(props: FileMenuProps): JSX.Element {
     }
 
     if (confirm(`Are you sure you want to delete ${selectedFile.name}`)) {
-      console.log('confirmed deletion');
       await selectedFilesParentFolder?.removeEntry(selectedFile.name);
       invalidateFileSystem();
     }
