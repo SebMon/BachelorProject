@@ -13,15 +13,15 @@ export type StoredRSAPublicKey = StoredKey & RSAPublicKey;
 
 export type StoredRSAPrivateKey = StoredKey & RSAPrivateKey;
 
-function isStoredAESKey(storedKey: StoredKey): storedKey is StoredAESKey {
+export function isStoredAESKey(storedKey: StoredKey): storedKey is StoredAESKey {
   return 'aesKey' in storedKey;
 }
 
-function isStoredRSAPublicKey(storedKey: StoredKey): storedKey is StoredRSAPublicKey {
+export function isStoredRSAPublicKey(storedKey: StoredKey): storedKey is StoredRSAPublicKey {
   return 'n' in storedKey && !('d' in storedKey);
 }
 
-function isStoredRSAPrivateKey(storedKey: StoredKey): storedKey is StoredRSAPrivateKey {
+export function isStoredRSAPrivateKey(storedKey: StoredKey): storedKey is StoredRSAPrivateKey {
   return 'n' in storedKey && 'd' in storedKey;
 }
 
@@ -40,6 +40,17 @@ export class StoredKeys extends Dexie {
       rsaPublicKeys: '++id, name, n, e',
       rsaPrivateKeys: '++id, name, n, d, e, p, q, dp, dq, qi'
     });
+  }
+
+  async getAll(): Promise<StoredKey[]> {
+    const emptyArr: StoredKey[] = [];
+    const keys = emptyArr.concat(
+      await this.aesKeys.toArray(),
+      await this.rsaPublicKeys.toArray(),
+      await this.rsaPrivateKeys.toArray()
+    );
+    keys.sort((a, b) => a.name.localeCompare(b.name));
+    return keys;
   }
 
   async store(key: StoredKey): Promise<void> {
