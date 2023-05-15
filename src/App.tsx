@@ -8,13 +8,15 @@ import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
-import type { EncryptionType } from './encryption/EncryptionType';
+import { EncryptionType } from './encryption/EncryptionType';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 import ProcessIndicator from './components/ProcessIndicator';
 import { settingsContext } from './context/settingsContext';
 import { NotificationLevel, Settings } from './persistence/settings';
 import { SettingsButton } from './components/SettingsButton';
 import SettingsDialog from './components/SettingsDialog';
+import KeyMenu from './components/KeyMenu';
+import KeyDialog from './components/KeyDialog';
 
 // Example for demonstrating using wasm
 init()
@@ -65,6 +67,7 @@ function App(): JSX.Element {
 
   // Manage dialogs
   const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
+  const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
@@ -128,6 +131,10 @@ function App(): JSX.Element {
     setShowEncryptionDialog(true);
   };
 
+  const generateKeySelected = (): void => {
+    setShowKeyDialog(true);
+  };
+
   const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
 
@@ -172,6 +179,14 @@ function App(): JSX.Element {
     }
   };
 
+  const generateKeyTriggered = (type: EncryptionType, name: string): void => {
+    if (type === EncryptionType.Symmetric) {
+      console.log('symmetric', name);
+    } else {
+      console.log('asymmetric', name);
+    }
+  };
+
   const getTabTitle = (): string => {
     if (currentProcesses.length === 0) {
       return 'Encryption';
@@ -199,8 +214,13 @@ function App(): JSX.Element {
           <div className="col-12 col-md-8 h-100 pt-5 px-5">
             <FileExplorer />
           </div>
-          <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
-            <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
+          <div className="col-12 col-md-4 mt-4 mt-md-0 pt-md-5 px-5 d-flex flex-column justify-content-between">
+            <div className="row">
+              <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
+            </div>
+            <div className="row h-50">
+              <KeyMenu onGenerateRequested={generateKeySelected}></KeyMenu>
+            </div>
           </div>
         </div>
 
@@ -220,6 +240,14 @@ function App(): JSX.Element {
             setShowSettingsDialog(false);
           }}
         />
+
+        <KeyDialog
+          show={showKeyDialog}
+          onClose={() => {
+            setShowKeyDialog(false);
+          }}
+          onGenerate={generateKeyTriggered}
+        ></KeyDialog>
 
         {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
       </selectedFileContext.Provider>
