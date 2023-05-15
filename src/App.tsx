@@ -15,6 +15,8 @@ import { settingsContext } from './context/settingsContext';
 import { NotificationLevel, Settings } from './persistence/settings';
 import { SettingsButton } from './components/SettingsButton';
 import SettingsDialog from './components/SettingsDialog';
+import { StoredKeys } from './persistence/StoredKeys';
+import { StoredKeysContext } from './context/StoredKeysContext';
 
 // Example for demonstrating using wasm
 init()
@@ -26,6 +28,7 @@ init()
   });
 
 const settings = new Settings();
+const storedKeys = new StoredKeys();
 
 export interface Process {
   UUID: string;
@@ -187,43 +190,45 @@ function App(): JSX.Element {
   document.title = getTabTitle();
 
   return (
-    <settingsContext.Provider value={settings}>
-      <selectedFileContext.Provider value={selectedFileContextValue}>
-        <SettingsButton
-          onClick={() => {
-            setShowSettingsDialog(true);
-          }}
-        />
+    <StoredKeysContext.Provider value={storedKeys}>
+      <settingsContext.Provider value={settings}>
+        <selectedFileContext.Provider value={selectedFileContextValue}>
+          <SettingsButton
+            onClick={() => {
+              setShowSettingsDialog(true);
+            }}
+          />
 
-        <div className="App row">
-          <div className="col-12 col-md-8 h-100 pt-5 px-5">
-            <FileExplorer />
+          <div className="App row">
+            <div className="col-12 col-md-8 h-100 pt-5 px-5">
+              <FileExplorer />
+            </div>
+            <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
+              <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
+            </div>
           </div>
-          <div className="col-12 col-md-4 mt-4  mt-md-0 pt-md-5 pb-5 px-5">
-            <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
-          </div>
-        </div>
 
-        <EncryptDialog
-          show={showEncryptionDialog}
-          variant={encryptionDialogVariant}
-          onClose={() => {
-            setShowEncryptionDialog(false);
-          }}
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onEncrypt={encryptionTriggered}
-        />
+          <EncryptDialog
+            show={showEncryptionDialog}
+            variant={encryptionDialogVariant}
+            onClose={() => {
+              setShowEncryptionDialog(false);
+            }}
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onEncrypt={encryptionTriggered}
+          />
 
-        <SettingsDialog
-          show={showSettingsDialog}
-          onClose={() => {
-            setShowSettingsDialog(false);
-          }}
-        />
+          <SettingsDialog
+            show={showSettingsDialog}
+            onClose={() => {
+              setShowSettingsDialog(false);
+            }}
+          />
 
-        {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
-      </selectedFileContext.Provider>
-    </settingsContext.Provider>
+          {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
+        </selectedFileContext.Provider>
+      </settingsContext.Provider>
+    </StoredKeysContext.Provider>
   );
 }
 
