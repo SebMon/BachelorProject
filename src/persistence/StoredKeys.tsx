@@ -68,4 +68,23 @@ export class StoredKeys extends Dexie {
     }
     throw Error('The key was not of a type that could be stored in the database');
   }
+
+  async remove(key: StoredKey): Promise<void> {
+    if (!('id' in key && typeof key.id === 'number')) {
+      throw Error("Can't remove a key without an id");
+    }
+    if (isStoredAESKey(key)) {
+      await this.aesKeys.delete(key.id);
+      return;
+    }
+    if (isStoredRSAPublicKey(key)) {
+      await this.rsaPublicKeys.delete(key.id);
+      return;
+    }
+    if (isStoredRSAPrivateKey(key)) {
+      await this.rsaPrivateKeys.delete(key.id);
+      return;
+    }
+    throw Error('The key was not of a type that could be in the database');
+  }
 }
