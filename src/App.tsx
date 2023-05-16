@@ -218,11 +218,11 @@ function App(): JSX.Element {
             <div className="col-12 col-md-8 h-100 pt-5 px-5">
               <FileExplorer />
             </div>
-            <div className="col-12 col-md-4 mt-4 mt-md-0 pt-md-5 px-5 d-flex flex-column justify-content-between">
+            <div className="col-12 col-md-4 mt-4 mt-md-0 pt-md-5 px-5 h-100 d-flex flex-column justify-content-between">
               <div className="row">
                 <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
               </div>
-              <div className="row h-50">
+              <div className="row h-75">
                 <KeyMenu onGenerateRequested={generateKeySelected}></KeyMenu>
               </div>
             </div>
