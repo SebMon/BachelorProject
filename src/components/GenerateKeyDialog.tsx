@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Modal } from 'react-bootstrap';
-import { EncryptionType } from '../encryption/EncryptionType';
-
-export type EncryptionDialogVariant = 'encrypt' | 'decrypt';
+import { EncryptionType } from '../encryption/Types';
 
 interface KeyDialogProps {
   show: boolean;

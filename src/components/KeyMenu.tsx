@@ -5,6 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 let didInit = false;
 
 interface KeyMenuProps {
+  onImportRequested: () => void;
   onGenerateRequested: () => void;
 }
 
@@ -24,6 +25,10 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
     }
   }, []);
 
+  window.addEventListener('resize', () => {
+    setScreenSize(window.innerWidth);
+  });
+
   const calculateKeyListHeight = (): string => {
     if (buttonRowRef === null) {
       return '0';
@@ -42,11 +47,15 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
 
   return (
     <div className="h-100 container mb-5">
-      <div className="row" ref={buttonRowRef}>
-        <button className="btn btn-light mt-2 mb-2 px-5" onClick={props.onGenerateRequested}>
+      <div className="d-flex justify-content-between flex-row flex-wrap mb-3" ref={buttonRowRef}>
+        <button className="btn btn-light mt-2 mx-1 px-5" onClick={props.onImportRequested}>
+          Import Key
+        </button>
+        <button className="btn btn-light mt-2 mx-1 px-5" onClick={props.onGenerateRequested}>
           Generate Key
         </button>
       </div>
+
       <div className="row" style={{ height: keyListHeight }}>
         <div className="container pt-3 bg-light mb-5 rounded overflow-auto h-100">
           {keys?.map((key, index) => {

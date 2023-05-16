@@ -1,4 +1,4 @@
-import { EncryptionType } from './EncryptionType';
+import { EncryptionType } from './Types';
 import { PrivateKeyFromPem, PublicKeyFromPem } from './RSA/keys';
 import type { RSAKey } from './RSA/keys';
 import { hexToBytes } from './encodeDecode';

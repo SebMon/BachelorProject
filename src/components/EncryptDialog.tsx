@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, InputGroup, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { EncryptionType } from '../encryption/EncryptionType';
+import { EncryptionType } from '../encryption/Types';
 
 export type EncryptionDialogVariant = 'encrypt' | 'decrypt';
 

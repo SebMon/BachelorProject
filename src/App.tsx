@@ -8,7 +8,7 @@ import { selectedFileContext } from './context/SelectedFileContext';
 import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
-import { EncryptionType } from './encryption/EncryptionType';
+import { EncryptionType, KeyType } from './encryption/Types';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 import ProcessIndicator from './components/ProcessIndicator';
 import { settingsContext } from './context/settingsContext';
@@ -16,9 +16,13 @@ import { NotificationLevel, Settings } from './persistence/settings';
 import { SettingsButton } from './components/SettingsButton';
 import SettingsDialog from './components/SettingsDialog';
 import KeyMenu from './components/KeyMenu';
-import KeyDialog from './components/KeyDialog';
+import GenerateKeyDialog from './components/GenerateKeyDialog';
+import ImportKeyDialog from './components/ImportKeyDialog';
 import { StoredKeys } from './persistence/StoredKeys';
+import type { StoredAESKey, StoredRSAPrivateKey, StoredRSAPublicKey } from './persistence/StoredKeys';
 import { StoredKeysContext } from './context/StoredKeysContext';
+import { hexToBytes } from './encryption/encodeDecode';
+import { PrivateKeyFromPem, PublicKeyFromPem } from './encryption/RSA/keys';
 
 // Example for demonstrating using wasm
 init()
@@ -70,7 +74,8 @@ function App(): JSX.Element {
 
   // Manage dialogs
   const [showEncryptionDialog, setShowEncryptionDialog] = useState(false);
-  const [showKeyDialog, setShowKeyDialog] = useState(false);
+  const [showGenerateKeyDialog, setShowGenerateKeyDialog] = useState(false);
+  const [showImportKeyDialog, setShowImportKeyDialog] = useState(false);
   const [encryptionDialogVariant, setEncryptionDialogVariant] = useState<EncryptionDialogVariant>('encrypt');
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
 
@@ -135,7 +140,11 @@ function App(): JSX.Element {
   };
 
   const generateKeySelected = (): void => {
-    setShowKeyDialog(true);
+    setShowGenerateKeyDialog(true);
+  };
+
+  const importKeySelected = (): void => {
+    setShowImportKeyDialog(true);
   };
 
   const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
@@ -190,6 +199,42 @@ function App(): JSX.Element {
     }
   };
 
+  const importKeyTriggered = async (type: KeyType, name: string, keyText: string): Promise<void> => {
+    if (type === KeyType.Symmetric) {
+      const key: StoredAESKey = {
+        name,
+        aesKey: hexToBytes(keyText)
+      };
+
+      await storedKeys.store(key);
+      return;
+    }
+
+    if (type === KeyType.AsymmetricPublic) {
+      const parsedPem = await PublicKeyFromPem(keyText);
+      const key: StoredRSAPublicKey = {
+        name,
+        ...parsedPem
+      };
+
+      await storedKeys.store(key);
+      return;
+    }
+
+    if (type === KeyType.AsymmetricPrivate) {
+      const parsedPem = await PrivateKeyFromPem(keyText);
+      const key: StoredRSAPrivateKey = {
+        name,
+        ...parsedPem
+      };
+
+      await storedKeys.store(key);
+      return;
+    }
+
+    throw Error('None of the accepted key types were selected');
+  };
+
   const getTabTitle = (): string => {
     if (currentProcesses.length === 0) {
       return 'Encryption';
@@ -223,7 +268,7 @@ function App(): JSX.Element {
                 <FileMenu onEncryptionRequested={encryptSelected} onDecryptionRequested={decryptSelected} />
               </div>
               <div className="row h-75">
-                <KeyMenu onGenerateRequested={generateKeySelected}></KeyMenu>
+                <KeyMenu onGenerateRequested={generateKeySelected} onImportRequested={importKeySelected}></KeyMenu>
               </div>
             </div>
           </div>
@@ -245,13 +290,22 @@ function App(): JSX.Element {
             }}
           />
 
-          <KeyDialog
-            show={showKeyDialog}
+          <GenerateKeyDialog
+            show={showGenerateKeyDialog}
             onClose={() => {
-              setShowKeyDialog(false);
+              setShowGenerateKeyDialog(false);
             }}
             onGenerate={generateKeyTriggered}
-          ></KeyDialog>
+          ></GenerateKeyDialog>
+
+          <ImportKeyDialog
+            show={showImportKeyDialog}
+            onClose={() => {
+              setShowImportKeyDialog(false);
+            }}
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onImport={importKeyTriggered}
+          ></ImportKeyDialog>
 
           {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
         </selectedFileContext.Provider>
