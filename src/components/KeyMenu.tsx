@@ -47,7 +47,7 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
   const keyListHeight = calculateKeyListHeight();
 
   const onDeletePressed = (key: StoredKey): void => {
-    if (confirm(`Are you sure your want to delete "${key.name}`)) {
+    if (confirm(`Are you sure your want to delete "${key.name}"`)) {
       storedKeys.remove(key).catch((e) => {
         console.error('failed to remove the key');
         console.error(e);

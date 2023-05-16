@@ -9,6 +9,7 @@ import type { SelectedFileContext } from './context/SelectedFileContext';
 import EncryptDialog from './components/EncryptDialog';
 import type { EncryptionDialogVariant } from './components/EncryptDialog';
 import { EncryptionType, KeyType } from './encryption/Types';
+import type { EncryptionKey } from './encryption/Types';
 import { decryptFile, encryptFile } from './encryption/EncryptionHandler';
 import ProcessIndicator from './components/ProcessIndicator';
 import { settingsContext } from './context/settingsContext';
@@ -147,7 +148,7 @@ function App(): JSX.Element {
     setShowImportKeyDialog(true);
   };
 
-  const encryptionTriggered = async (type: EncryptionType, key: string): Promise<void> => {
+  const encryptionTriggered = async (type: EncryptionType, key: EncryptionKey): Promise<void> => {
     if (selectedFile === undefined || selectedFilesParentFolder === undefined) throw Error();
 
     await requestNotificationPermission();
