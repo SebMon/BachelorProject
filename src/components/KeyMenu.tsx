@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { StoredKeysContext } from '../context/StoredKeysContext';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 let didInit = false;
 
@@ -8,6 +10,10 @@ interface KeyMenuProps {
 
 export default function KeyMenu(props: KeyMenuProps): JSX.Element {
   const buttonRowRef = useRef<HTMLDivElement>(null);
+
+  const storedKeys = useContext(StoredKeysContext);
+
+  const keys = useLiveQuery(async () => await storedKeys.getAll());
 
   // This useState and useEffect is just a small but ugly wait to get react to recalculate the filesystemheight after having rendered
   const [windowSize, setScreenSize] = useState(0);
@@ -43,57 +49,13 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
       </div>
       <div className="row" style={{ height: keyListHeight }}>
         <div className="container pt-3 bg-light mb-5 rounded overflow-auto h-100">
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
-          <div className="row">
-            <p>Test</p>
-          </div>
+          {keys?.map((key, index) => {
+            return (
+              <div key={index} className="row">
+                <p>{key.name}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
