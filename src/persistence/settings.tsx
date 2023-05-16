@@ -19,7 +19,7 @@ export enum NotificationLevel {
   always = 'always'
 }
 
-export class Settings extends Dexie {
+class SettingsDatabase extends Dexie {
   settings!: Dexie.Table<SettingTableEntry, string>;
 
   constructor() {
@@ -29,12 +29,20 @@ export class Settings extends Dexie {
       settings: 'key'
     });
   }
+}
+
+export class Settings {
+  private readonly db: SettingsDatabase;
+
+  constructor() {
+    this.db = new SettingsDatabase();
+  }
 
   async getEncryptionEngine(): Promise<EncryptionEngine> {
-    const object = await this.settings.get(ENCRYPTION_ENGINE);
+    const object = await this.db.settings.get(ENCRYPTION_ENGINE);
 
     if (object === undefined || !Object.values(EncryptionEngine).includes(object.value as EncryptionEngine)) {
-      await this.settings.put({ key: ENCRYPTION_ENGINE, value: EncryptionEngine.wasm });
+      await this.db.settings.put({ key: ENCRYPTION_ENGINE, value: EncryptionEngine.wasm });
       return EncryptionEngine.wasm;
     }
 
@@ -42,14 +50,14 @@ export class Settings extends Dexie {
   }
 
   async setEncryptionEngine(value: EncryptionEngine): Promise<void> {
-    await this.settings.put({ key: ENCRYPTION_ENGINE, value });
+    await this.db.settings.put({ key: ENCRYPTION_ENGINE, value });
   }
 
   async getNotificationLevel(): Promise<NotificationLevel> {
-    const object = await this.settings.get(NOTIFICATION_LEVEL);
+    const object = await this.db.settings.get(NOTIFICATION_LEVEL);
 
     if (object === undefined || !Object.values(NotificationLevel).includes(object.value as NotificationLevel)) {
-      await this.settings.put({ key: NOTIFICATION_LEVEL, value: NotificationLevel.always });
+      await this.db.settings.put({ key: NOTIFICATION_LEVEL, value: NotificationLevel.always });
       return NotificationLevel.always;
     }
 
@@ -57,6 +65,6 @@ export class Settings extends Dexie {
   }
 
   async setNotificationLevel(value: NotificationLevel): Promise<void> {
-    await this.settings.put({ key: NOTIFICATION_LEVEL, value });
+    await this.db.settings.put({ key: NOTIFICATION_LEVEL, value });
   }
 }
