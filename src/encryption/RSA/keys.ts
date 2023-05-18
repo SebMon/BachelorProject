@@ -58,20 +58,6 @@ export async function PublicKeyFromPem(pem: string): Promise<RSAPublicKey> {
 }
 
 /**
- * Converts a public key to string repressentation - to be stored in e.g. a public.pem file
- * @param key the key
- * @returns string repressentation of the key in pem pkcs8 format
- */
-/* export function PublicKeyToPem(key: RSAPublicKey): string {
-  const publicKey = createPublicKey({
-    format: 'jwk',
-    key: { kty: 'RSA', n: bytesToBase64(key.n), e: bytesToBase64(key.e) }
-  });
-
-  return publicKey.export({ type: 'spki', format: 'pem' }).toString();
-} */
-
-/**
  * Converts a string repressentation of an RSA private key - e.g. from a private.pem file
  * @param pem pem pkcs8 formatted private key
  * @returns key in the format used by the RSA algorithm
@@ -117,30 +103,6 @@ export async function PrivateKeyFromPem(pem: string): Promise<RSAPrivateKey> {
 
   return { n, d, e, p, q, dp, dq, qi };
 }
-
-/**
- * Converts a private key to string repressentation - to be stored in e.g. a private.pem file
- * @param key the key
- * @returns string repressentation of the key in pem pkcs8 format
- */
-/* export function PrivateKeyToPem(key: RSAPrivateKey): string {
-  const privateKey = createPrivateKey({
-    format: 'jwk',
-    key: {
-      kty: 'RSA',
-      n: bytesToBase64(key.n),
-      d: bytesToBase64(key.d),
-      e: bytesToBase64(key.e),
-      p: bytesToBase64(key.p),
-      q: bytesToBase64(key.q),
-      dp: bytesToBase64(key.dp),
-      dq: bytesToBase64(key.dq),
-      qi: bytesToBase64(key.qi)
-    }
-  });
-
-  return privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
-} */
 
 function str2ab(str: string): ArrayBuffer {
   const buf = new ArrayBuffer(str.length);
