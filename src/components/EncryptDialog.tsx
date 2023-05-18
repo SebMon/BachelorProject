@@ -8,10 +8,12 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { StoredKeysContext } from '../context/StoredKeysContext';
 import { textToBytes } from '../encryption/encodeDecode';
 import { PrivateKeyFromPem, PublicKeyFromPem } from '../encryption/RSA/keys';
+import type { AESKey } from '../encryption/AES';
 
 enum KeyInputMethod {
   Stored = 'stored',
-  Write = 'write'
+  Write = 'write',
+  Password = 'password'
 }
 
 interface KeyListElement extends StoredKey {
@@ -31,6 +33,7 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
   const [encryptionType, setEncryptionType] = useState<EncryptionType>(EncryptionType.Symmetric);
   const [keyInputMethod, setKeyInputMethod] = useState<KeyInputMethod>(KeyInputMethod.Stored);
   const [writtenKey, setWrittenKey] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [selectedKeyIndex, setSelectedKeyIndex] = useState<number>(-1);
 
   const storedKeys = useContext(StoredKeysContext);
@@ -63,6 +66,10 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
     }
   }, [selectableKeys]);
 
+  useEffect(() => {
+    setPassword('');
+  }, [props.show, keyInputMethod]);
+
   const getToolTip = (props: any): JSX.Element => {
     let tooltipText = '';
 
@@ -78,6 +85,9 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
   const selectedAlgorithmChanged = (event: React.SyntheticEvent): void => {
     if ('value' in event.target && typeof event.target.value === 'string') {
       setEncryptionType(event.target.value as EncryptionType);
+      if (keyInputMethod === KeyInputMethod.Password) {
+        setKeyInputMethod(KeyInputMethod.Stored);
+      }
     }
   };
 
@@ -96,6 +106,12 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
   const writtenKeyChanged = (event: React.SyntheticEvent): void => {
     if ('value' in event.target && typeof event.target.value === 'string') {
       setWrittenKey(event.target.value);
+    }
+  };
+
+  const passwordChanged = (event: React.SyntheticEvent): void => {
+    if ('value' in event.target && typeof event.target.value === 'string') {
+      setPassword(event.target.value);
     }
   };
 
@@ -136,11 +152,20 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
     }
   };
 
+  const getAESKeyFromPassword = async (): Promise<AESKey> => {
+    const buffer = await crypto.subtle.digest('SHA-256', textToBytes(password));
+    const bytes = new Uint8Array(buffer);
+    console.log(bytes);
+    return { aesKey: bytes };
+  };
+
   const getKey = async (): Promise<EncryptionKey> => {
     if (keyInputMethod === KeyInputMethod.Write) {
       return await getKeyFromTextField();
-    } else {
+    } else if (keyInputMethod === KeyInputMethod.Stored) {
       return getSelectedKey();
+    } else {
+      return await getAESKeyFromPassword();
     }
   };
 
@@ -165,6 +190,13 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
         <Form.Select id="keyInputMethodSelect" onChange={keyInputMethodChanged} value={keyInputMethod}>
           <option value={KeyInputMethod.Stored}>Select a stored key</option>
           <option value={KeyInputMethod.Write}>Input into a text field</option>
+
+          {
+            // eslint-disable-next-line multiline-ternary
+            encryptionType === EncryptionType.Symmetric ? (
+              <option value={KeyInputMethod.Password}>Type a password</option>
+            ) : null
+          }
         </Form.Select>
 
         {
@@ -214,6 +246,19 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
                   value={writtenKey}
                   onChange={writtenKeyChanged}
                 />
+              </InputGroup>
+            </div>
+          ) : undefined
+        }
+
+        {
+          // eslint-disable-next-line multiline-ternary
+          keyInputMethod === KeyInputMethod.Password ? (
+            <div>
+              <Form.Label htmlFor="passwordTextInput">Password</Form.Label>
+
+              <InputGroup>
+                <Form.Control type="password" id="passwordTextInput" value={password} onChange={passwordChanged} />
               </InputGroup>
             </div>
           ) : undefined
