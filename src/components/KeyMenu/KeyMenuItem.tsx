@@ -2,9 +2,8 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import type { StoredKey } from '../../persistence/StoredKeys/types';
 import { StoredKeysContext } from '../../context/StoredKeysContext';
 import { isStoredAESKey, isStoredRSAPublicKey, isStoredRSAPrivateKey } from '../../persistence/StoredKeys/types';
-import { bytesToBase64, bytesToHex, bytesToText } from '../../encryption/encodeDecode';
-import { KeyType } from '../../encryption/Types';
-import { RSAPrivateKeyToPEM, RSAPublicKeyToPEM } from '../../encryption/RSA/keys';
+import { bytesToHex } from '../../encryption/encodeDecode';
+import { PrivateKeyToPEM, PublicKeyToPEM } from '../../encryption/RSA/keys';
 
 interface KeyMenuItemProps {
   keyObject: StoredKey;
@@ -64,12 +63,12 @@ export default function KeyMenuItem(props: KeyMenuItemProps): JSX.Element {
       return;
     }
     if (isStoredRSAPublicKey(key)) {
-      const convertedKey = await RSAPublicKeyToPEM(key);
+      const convertedKey = await PublicKeyToPEM(key);
       await navigator.clipboard.writeText(convertedKey);
       return;
     }
     if (isStoredRSAPrivateKey(key)) {
-      const convertedKey = await RSAPrivateKeyToPEM(key);
+      const convertedKey = await PrivateKeyToPEM(key);
       await navigator.clipboard.writeText(convertedKey);
     }
   };

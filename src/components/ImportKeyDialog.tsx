@@ -38,6 +38,7 @@ export default function ImportKeyDialog(props: ImportKeyDialogProps): JSX.Elemen
     props.onClose();
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getToolTip = (props: any): JSX.Element => {
     let tooltipText = '';
 

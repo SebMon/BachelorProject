@@ -155,7 +155,7 @@ export function base64ToUInt8Array(str: string): Uint8Array {
   return new Uint8Array(str2ab(window.atob(str.replaceAll('-', '+').replaceAll('_', '/'))));
 }
 
-export async function RSAPublicKeyToPEM(key: RSAPublicKey): Promise<string> {
+export async function PublicKeyToPEM(key: RSAPublicKey): Promise<string> {
   const convertedKey = await window.crypto.subtle.importKey(
     'jwk',
     {
@@ -176,7 +176,7 @@ export async function RSAPublicKeyToPEM(key: RSAPublicKey): Promise<string> {
   return bytesToPEM(keySpki, KeyType.AsymmetricPublic);
 }
 
-export async function RSAPrivateKeyToPEM(key: RSAPrivateKey): Promise<string> {
+export async function PrivateKeyToPEM(key: RSAPrivateKey): Promise<string> {
   const convertedKey = await window.crypto.subtle.importKey(
     'jwk',
     {
@@ -204,7 +204,7 @@ export async function RSAPrivateKeyToPEM(key: RSAPrivateKey): Promise<string> {
 }
 
 function b64tob64u(a: string): string {
-  // eslint-disable-next-line
+  // eslint-disable-next-line no-useless-escape
   a = a.replace(/\=/g, '');
   a = a.replace(/\+/g, '-');
   a = a.replace(/\//g, '_');

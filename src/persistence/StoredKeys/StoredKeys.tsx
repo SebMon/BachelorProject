@@ -1,5 +1,4 @@
 import Dexie from 'dexie';
-import type { RSAPrivateKey, RSAPublicKey } from '../../encryption/RSA/keys';
 import { isStoredAESKey, isStoredRSAPrivateKey, isStoredRSAPublicKey } from './types';
 import type { StoredAESKey, StoredKey, StoredRSAPrivateKey, StoredRSAPublicKey } from './types';
 

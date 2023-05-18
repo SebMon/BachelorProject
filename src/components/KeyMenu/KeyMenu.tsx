@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StoredKeysContext } from '../../context/StoredKeysContext';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { StoredKey } from '../../persistence/StoredKeys/types';
 import KeyMenuItem from './KeyMenuItem';
 
 let didInit = false;

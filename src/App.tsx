@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import './App.css';
-import init, { fib } from 'src-wasm';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import FileExplorer from './components/FileExplorer/FileExplorer';
 import FileMenu from './components/FileMenu';
@@ -24,15 +23,6 @@ import type { StoredAESKey, StoredRSAPrivateKey, StoredRSAPublicKey } from './pe
 import { StoredKeysContext } from './context/StoredKeysContext';
 import { hexToBytes } from './encryption/encodeDecode';
 import { PrivateKeyFromPem, PublicKeyFromPem, base64ToUInt8Array } from './encryption/RSA/keys';
-
-// Example for demonstrating using wasm
-init()
-  .then(() => {
-    console.log(fib(20));
-  })
-  .catch((e) => {
-    console.error(e);
-  });
 
 const settings = new Settings();
 const storedKeys = new StoredKeys();
