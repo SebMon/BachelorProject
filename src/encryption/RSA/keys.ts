@@ -1,3 +1,6 @@
+import { KeyType } from '../Types';
+import { bytesToBase64 } from '../encodeDecode';
+
 export interface RSAPublicKey {
   n: Uint8Array;
   e: Uint8Array;
@@ -150,4 +153,90 @@ function str2ab(str: string): ArrayBuffer {
 
 export function base64ToUInt8Array(str: string): Uint8Array {
   return new Uint8Array(str2ab(window.atob(str.replaceAll('-', '+').replaceAll('_', '/'))));
+}
+
+export async function RSAPublicKeyToPEM(key: RSAPublicKey): Promise<string> {
+  const convertedKey = await window.crypto.subtle.importKey(
+    'jwk',
+    {
+      kty: 'RSA',
+      e: b64tob64u(bytesToBase64(key.e)),
+      n: b64tob64u(bytesToBase64(key.n)),
+      alg: 'RSA-OAEP-256',
+      ext: true
+    },
+    {
+      name: 'RSA-OAEP',
+      hash: { name: 'SHA-256' }
+    },
+    true,
+    ['encrypt']
+  );
+  const keySpki = await window.crypto.subtle.exportKey('spki', convertedKey);
+  return bytesToPEM(keySpki, KeyType.AsymmetricPublic);
+}
+
+export async function RSAPrivateKeyToPEM(key: RSAPrivateKey): Promise<string> {
+  const convertedKey = await window.crypto.subtle.importKey(
+    'jwk',
+    {
+      kty: 'RSA',
+      e: b64tob64u(bytesToBase64(key.e)),
+      n: b64tob64u(bytesToBase64(key.n)),
+      d: b64tob64u(bytesToBase64(key.d)),
+      p: b64tob64u(bytesToBase64(key.p)),
+      q: b64tob64u(bytesToBase64(key.q)),
+      dp: b64tob64u(bytesToBase64(key.dp)),
+      dq: b64tob64u(bytesToBase64(key.dq)),
+      qi: b64tob64u(bytesToBase64(key.qi)),
+      alg: 'RSA-OAEP-256',
+      ext: true
+    },
+    {
+      name: 'RSA-OAEP',
+      hash: { name: 'SHA-256' }
+    },
+    true,
+    ['decrypt']
+  );
+  const keyPKCS8 = await window.crypto.subtle.exportKey('pkcs8', convertedKey);
+  return bytesToPEM(keyPKCS8, KeyType.AsymmetricPrivate);
+}
+
+function b64tob64u(a: string): string {
+  // eslint-disable-next-line
+  a = a.replace(/\=/g, '');
+  a = a.replace(/\+/g, '-');
+  a = a.replace(/\//g, '_');
+  return a;
+}
+
+function bytesToPEM(keydata: ArrayBuffer, keyType: KeyType): string {
+  const keydataS = arrayBufferToString(keydata);
+  const keydataB64 = window.btoa(keydataS);
+  const keydataB64Pem = formatAsPem(keydataB64, keyType);
+  return keydataB64Pem;
+}
+
+function arrayBufferToString(buffer: ArrayBuffer): string {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return binary;
+}
+
+function formatAsPem(str: string, keyType: KeyType): string {
+  let finalString = `-----BEGIN ${keyType === KeyType.AsymmetricPrivate ? 'PRIVATE' : 'PUBLIC'} KEY-----\n`;
+
+  while (str.length > 0) {
+    finalString += str.substring(0, 64) + '\n';
+    str = str.substring(64);
+  }
+
+  finalString = finalString + `-----END ${keyType === KeyType.AsymmetricPrivate ? 'PRIVATE' : 'PUBLIC'} KEY-----`;
+
+  return finalString;
 }
