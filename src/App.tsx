@@ -23,7 +23,7 @@ import { StoredKeys } from './persistence/StoredKeys/StoredKeys';
 import type { StoredAESKey, StoredRSAPrivateKey, StoredRSAPublicKey } from './persistence/StoredKeys/types';
 import { StoredKeysContext } from './context/StoredKeysContext';
 import { hexToBytes } from './encryption/encodeDecode';
-import { PrivateKeyFromPem, PublicKeyFromPem } from './encryption/RSA/keys';
+import { PrivateKeyFromPem, PublicKeyFromPem, base64ToUInt8Array } from './encryption/RSA/keys';
 
 // Example for demonstrating using wasm
 init()
@@ -159,6 +159,7 @@ function App(): JSX.Element {
         selectedFile,
         selectedFilesParentFolder,
         type,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         key,
         await settings.getEncryptionEngine(),
         (e) => {
@@ -177,6 +178,7 @@ function App(): JSX.Element {
         selectedFile,
         selectedFilesParentFolder,
         type,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         key,
         await settings.getEncryptionEngine(),
         (e) => {
@@ -202,14 +204,45 @@ function App(): JSX.Element {
         true,
         ['encrypt', 'decrypt']
       );
-      const keyRaw = await window.crypto.subtle.exportKey('raw', key);
+      const keyRaw: ArrayBuffer = await window.crypto.subtle.exportKey('raw', key);
       const keyToStore: StoredAESKey = {
         name,
         aesKey: new Uint8Array(keyRaw)
       };
       await storedKeys.store(keyToStore);
     } else {
-      console.log('asymmetric', name);
+      const keyPair: CryptoKeyPair = await window.crypto.subtle.generateKey(
+        {
+          name: 'RSA-OAEP',
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: 'SHA-256'
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const publicKey = await window.crypto.subtle.exportKey('jwk', keyPair.publicKey);
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
+      const publicKeyToStore: StoredRSAPublicKey = {
+        name: name + ' - public',
+        n: base64ToUInt8Array(publicKey.n!),
+        e: base64ToUInt8Array(publicKey.e!)
+      };
+      const privateKey = await window.crypto.subtle.exportKey('jwk', keyPair.privateKey);
+      const privateKeyToStore: StoredRSAPrivateKey = {
+        name: name + ' - private',
+        n: base64ToUInt8Array(privateKey.n!),
+        e: base64ToUInt8Array(privateKey.e!),
+        d: base64ToUInt8Array(privateKey.d!),
+        p: base64ToUInt8Array(privateKey.p!),
+        q: base64ToUInt8Array(privateKey.q!),
+        dp: base64ToUInt8Array(privateKey.dp!),
+        dq: base64ToUInt8Array(privateKey.dq!),
+        qi: base64ToUInt8Array(privateKey.qi!)
+      };
+      /* eslint-emable @typescript-eslint/no-non-null-assertion */
+      await storedKeys.store(publicKeyToStore);
+      await storedKeys.store(privateKeyToStore);
     }
   };
 
@@ -309,6 +342,7 @@ function App(): JSX.Element {
             onClose={() => {
               setShowGenerateKeyDialog(false);
             }}
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onGenerate={generateKeyTriggered}
           ></GenerateKeyDialog>
 

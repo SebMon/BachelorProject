@@ -148,6 +148,6 @@ function str2ab(str: string): ArrayBuffer {
   return buf;
 }
 
-function base64ToUInt8Array(str: string): Uint8Array {
+export function base64ToUInt8Array(str: string): Uint8Array {
   return new Uint8Array(str2ab(window.atob(str.replaceAll('-', '+').replaceAll('_', '/'))));
 }
