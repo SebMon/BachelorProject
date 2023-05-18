@@ -307,6 +307,7 @@ function App(): JSX.Element {
               <div className="row h-75">
                 <KeyMenu onGenerateRequested={generateKeySelected} onImportRequested={importKeySelected}></KeyMenu>
               </div>
+
             </div>
           </div>
 
@@ -344,7 +345,6 @@ function App(): JSX.Element {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onImport={importKeyTriggered}
           ></ImportKeyDialog>
-
           {currentProcesses.length > 0 ? <ProcessIndicator items={currentProcesses} /> : null}
         </selectedFileContext.Provider>
       </settingsContext.Provider>
