@@ -78,63 +78,55 @@ export default function KeyMenuItem(props: KeyMenuItemProps): JSX.Element {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={async () => {
           if (isStoredAESKey(key)) {
-            await navigator.clipboard.writeText(bytesToText(key.aesKey));
+            await navigator.clipboard.writeText(bytesToHex(key.aesKey));
             return;
           }
           if (isStoredRSAPublicKey(key)) {
-            const convertedKey = await window.crypto.subtle
-              .importKey(
-                'jwk',
-                {
-                  kty: 'RSA',
-                  e: b64tob64u(bytesToBase64(key.e)),
-                  n: b64tob64u(bytesToBase64(key.n)),
-                  alg: 'RSA-OAEP-256',
-                  ext: true
-                },
-                {
-                  name: 'RSA-OAEP',
-                  hash: { name: 'SHA-256' }
-                },
-                true,
-                ['encrypt']
-              )
-              .catch((e) => {
-                console.log(e);
-              });
+            const convertedKey = await window.crypto.subtle.importKey(
+              'jwk',
+              {
+                kty: 'RSA',
+                e: b64tob64u(bytesToBase64(key.e)),
+                n: b64tob64u(bytesToBase64(key.n)),
+                alg: 'RSA-OAEP-256',
+                ext: true
+              },
+              {
+                name: 'RSA-OAEP',
+                hash: { name: 'SHA-256' }
+              },
+              true,
+              ['encrypt']
+            );
             const keySpki = await window.crypto.subtle.exportKey('spki', convertedKey);
             await navigator.clipboard.writeText(spkiToPEM(keySpki, KeyType.AsymmetricPublic));
             return;
           }
           if (isStoredRSAPrivateKey(key)) {
-            const convertedKey = await window.crypto.subtle
-              .importKey(
-                'jwk',
-                {
-                  kty: 'RSA',
-                  e: b64tob64u(bytesToBase64(key.e)),
-                  n: b64tob64u(bytesToBase64(key.n)),
-                  d: b64tob64u(bytesToBase64(key.d)),
-                  p: b64tob64u(bytesToBase64(key.p)),
-                  q: b64tob64u(bytesToBase64(key.q)),
-                  dp: b64tob64u(bytesToBase64(key.dp)),
-                  dq: b64tob64u(bytesToBase64(key.dq)),
-                  qi: b64tob64u(bytesToBase64(key.qi)),
-                  alg: 'RSA-OAEP-256',
-                  ext: true
-                },
-                {
-                  name: 'RSA-OAEP',
-                  hash: { name: 'SHA-256' }
-                },
-                true,
-                ['decrypt']
-              )
-              .catch((e) => {
-                console.log(e);
-              });
-            const keyTest = await window.crypto.subtle.exportKey('spki', convertedKey);
-            console.log(spkiToPEM(keyTest, KeyType.AsymmetricPrivate));
+            const convertedKey = await window.crypto.subtle.importKey(
+              'jwk',
+              {
+                kty: 'RSA',
+                e: b64tob64u(bytesToBase64(key.e)),
+                n: b64tob64u(bytesToBase64(key.n)),
+                d: b64tob64u(bytesToBase64(key.d)),
+                p: b64tob64u(bytesToBase64(key.p)),
+                q: b64tob64u(bytesToBase64(key.q)),
+                dp: b64tob64u(bytesToBase64(key.dp)),
+                dq: b64tob64u(bytesToBase64(key.dq)),
+                qi: b64tob64u(bytesToBase64(key.qi)),
+                alg: 'RSA-OAEP-256',
+                ext: true
+              },
+              {
+                name: 'RSA-OAEP',
+                hash: { name: 'SHA-256' }
+              },
+              true,
+              ['decrypt']
+            );
+            const keyPKCS8 = await window.crypto.subtle.exportKey('pkcs8', convertedKey);
+            await navigator.clipboard.writeText(spkiToPEM(keyPKCS8, KeyType.AsymmetricPrivate));
           }
         }}
       >
