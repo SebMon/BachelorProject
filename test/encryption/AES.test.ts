@@ -30,13 +30,13 @@ const correctCipher = new Uint8Array([
 ]);
 
 it('encrypts correctly', () => {
-  const cipher = encrypt(correctPlain, key);
+  const cipher = encrypt(correctPlain, { aesKey: key });
 
   expect(cipher).toEqual(correctCipher);
 });
 
 it('decrypts correctly', () => {
-  const plain = decrypt(correctCipher, key);
+  const plain = decrypt(correctCipher, { aesKey: key });
 
   expect(plain).toEqual(correctPlain);
 });

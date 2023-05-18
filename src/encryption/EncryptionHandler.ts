@@ -1,4 +1,5 @@
-import { EncryptionType } from './EncryptionType';
+import { EncryptionType } from './Types';
+import type { EncryptionKey } from './Types';
 import { PrivateKeyFromPem, PublicKeyFromPem } from './RSA/keys';
 import type { RSAKey } from './RSA/keys';
 import { hexToBytes } from './encodeDecode';
@@ -16,7 +17,7 @@ export async function encryptFile(
   fileHandle: FileSystemFileHandle,
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
-  key: string,
+  key: EncryptionKey,
   engine: EncryptionEngine,
   callback: (err: Error | null) => void
 ): Promise<void> {
@@ -29,15 +30,13 @@ export async function encryptFile(
 
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
-    const AESKey = hexToBytes(key);
     const url = engine === EncryptionEngine.js ? AES_E_js_url : AES_E_wasm_url;
     worker = new Worker(url, { type: 'module' });
-    worker.postMessage({ bytes, AESKey });
+    worker.postMessage({ bytes, aesKey: key });
   } else {
-    const rsakey = await parseRSAKey(key);
     const url = engine === EncryptionEngine.js ? RSA_E_js_url : RSA_E_wasm_url;
     worker = new Worker(url, { type: 'module' });
-    worker.postMessage({ bytes, rsakey });
+    worker.postMessage({ bytes, rsaKey: key });
   }
 
   worker.addEventListener('message', (message) => {
@@ -57,7 +56,7 @@ export async function decryptFile(
   fileHandle: FileSystemFileHandle,
   directoryHandle: FileSystemDirectoryHandle,
   type: EncryptionType,
-  key: string,
+  key: EncryptionKey,
   engine: EncryptionEngine,
   callback: (err: Error | null) => void
 ): Promise<void> {
@@ -69,15 +68,13 @@ export async function decryptFile(
   const bytes = new Uint8Array(await file.arrayBuffer());
   let worker: Worker;
   if (type === EncryptionType.Symmetric) {
-    const AESKey = hexToBytes(key);
     const url = engine === EncryptionEngine.js ? AES_D_js_url : AES_D_wasm_url;
     worker = new Worker(url, { type: 'module' });
-    worker.postMessage({ bytes, AESKey });
+    worker.postMessage({ bytes, aesKey: key });
   } else {
-    const rsakey = await parseRSAKey(key);
     const url = engine === EncryptionEngine.js ? RSA_D_js_url : RSA_D_wasm_url;
     worker = new Worker(url, { type: 'module' });
-    worker.postMessage({ bytes, rsakey });
+    worker.postMessage({ bytes, rsaKey: key });
   }
 
   worker.addEventListener('message', (message) => {
@@ -107,14 +104,4 @@ async function writeFile(
   const writeableEncryptedFile = await encryptedFile.createWritable();
   await writeableEncryptedFile.write(encryptedBytes);
   await writeableEncryptedFile.close();
-}
-
-async function parseRSAKey(key: string): Promise<RSAKey> {
-  if (key.includes('-----BEGIN PUBLIC KEY-----')) {
-    return await PublicKeyFromPem(key);
-  } else if (key.includes('-----BEGIN PRIVATE KEY-----')) {
-    return await PrivateKeyFromPem(key);
-  }
-
-  throw Error("RSA key didn't incude include '-----BEGIN PUBLIC KEY-----' or '-----BEGIN PRIVATE KEY-----'");
 }

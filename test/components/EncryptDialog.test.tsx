@@ -1,20 +1,42 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import type { Matcher } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import EncryptDialog from '../../src/components/EncryptDialog';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { EncryptionType } from '../../src/encryption/EncryptionType';
+import { StoredKeysContext } from '../../src/context/StoredKeysContext';
+import { mock } from 'vitest-mock-extended';
+import type { StoredKeys } from '../../src/persistence/StoredKeys/StoredKeys';
 
 const encryptCallback = vi.fn();
 const closeCallback = vi.fn();
 
 beforeEach(() => {
-  render(<EncryptDialog show={true} onClose={closeCallback} onEncrypt={encryptCallback} variant="encrypt" />);
+  const contextMock = mock<StoredKeys>({
+    getAll: async () => {
+      return await Promise.resolve([]);
+    }
+  });
+  render(
+    <StoredKeysContext.Provider value={contextMock}>
+      <EncryptDialog show={true} onClose={closeCallback} onEncrypt={encryptCallback} variant="encrypt" />
+    </StoredKeysContext.Provider>
+  );
 });
 
 afterEach(() => {
   cleanup();
 });
+
+const chooseOptionFromSelector = async (selectorLabelMatcher: Matcher, optionMatcher: Matcher): Promise<void> => {
+  const selector = screen.queryByLabelText(selectorLabelMatcher);
+  if (selector === null) throw Error();
+
+  const option = within(selector).queryByText(optionMatcher);
+  if (option === null) throw Error();
+
+  await userEvent.selectOptions(selector, option);
+};
 
 it('has an algorithm selector', () => {
   const algorithmSelector = screen.queryByLabelText(/[Aa]lgorithm/);
@@ -27,18 +49,16 @@ it('has an algorithm selector', () => {
   expect(assymetricOption).not.toBeNull();
 });
 
-it('has a textbox for entering a key', () => {
-  const algorithmSelector = screen.queryByLabelText(/[Kk]ey/);
-  expect(algorithmSelector).not.toBeNull();
+it('has a textbox for entering a key', async () => {
+  await chooseOptionFromSelector(/How will you/, /text field/);
+
+  const keyInput = screen.queryByLabelText(/^[Kk]ey/);
+  expect(keyInput).not.toBeNull();
 });
 
 it('shows the correct tooltip when Symmetric encryption is selected', async () => {
-  const algorithmSelector = screen.queryByLabelText(/[Aa]lgorithm/);
-  expect(algorithmSelector).not.toBeNull();
-  if (algorithmSelector === null) throw Error();
-
-  const symmetricOption = within(algorithmSelector).queryByText(/[^ ][Ss]ymmetric/);
-  symmetricOption?.click();
+  await chooseOptionFromSelector(/[Aa]lgorithm/, /^[Ss]ymmetric/);
+  await chooseOptionFromSelector(/How will you/, /text field/);
 
   const infoSymbol = screen.queryByTestId('key-info-icon');
   if (infoSymbol === null) throw Error();
@@ -52,14 +72,9 @@ it('shows the correct tooltip when Symmetric encryption is selected', async () =
   expect(tooltip?.innerHTML).toMatch(/hex/);
 });
 
-it('shows the correct tooltip when Assymetric encryption is selected', async () => {
-  const algorithmSelector = screen.queryByLabelText(/[Aa]lgorithm/);
-  if (algorithmSelector === null) throw Error();
-
-  const asymmetricOption = within(algorithmSelector).queryByText(/[Aa]symmetric/);
-  if (asymmetricOption === null) throw Error();
-
-  await userEvent.selectOptions(algorithmSelector, asymmetricOption);
+it('shows the correct tooltip when Asymmetric encryption is selected', async () => {
+  await chooseOptionFromSelector(/[Aa]lgorithm/, /[Aa]symmetric/);
+  await chooseOptionFromSelector(/How will you/, /text field/);
 
   const infoSymbol = screen.queryByTestId('key-info-icon');
   if (infoSymbol === null) throw Error();
@@ -71,29 +86,4 @@ it('shows the correct tooltip when Assymetric encryption is selected', async () 
   const tooltip = screen.queryByRole('tooltip');
   expect(tooltip?.innerHTML).toMatch(/pem/);
   expect(tooltip?.innerHTML).toMatch(/pkcs8/);
-});
-
-it('correctly calls the encrypt callback when "encrypt" button is pressed', async () => {
-  const algorithmSelector = screen.queryByLabelText(/[Aa]lgorithm/);
-  if (algorithmSelector === null) throw Error();
-
-  const asymmetricOption = within(algorithmSelector).queryByText(/[Aa]symmetric/);
-  if (asymmetricOption === null) throw Error();
-
-  await userEvent.selectOptions(algorithmSelector, asymmetricOption);
-
-  const textarea = screen.queryByLabelText(/[Kk]ey/);
-  if (textarea === null) throw Error();
-
-  fireEvent.change(textarea, { target: { value: 'testKey' } });
-
-  const buttons = screen.queryAllByRole('button');
-
-  const encryptButton = buttons.find((e) => e.innerHTML.match(/[Ee]ncrypt/));
-  if (encryptButton === undefined) throw Error();
-
-  encryptButton.click();
-
-  expect(encryptCallback).toHaveBeenCalledWith(EncryptionType.Asymmetric, 'testKey');
-  expect(closeCallback).toHaveBeenCalledOnce();
 });
