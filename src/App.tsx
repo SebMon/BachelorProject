@@ -16,7 +16,7 @@ import { settingsContext } from './context/settingsContext';
 import { NotificationLevel, Settings } from './persistence/settings';
 import { SettingsButton } from './components/SettingsButton';
 import SettingsDialog from './components/SettingsDialog';
-import KeyMenu from './components/KeyMenu';
+import KeyMenu from './components/KeyMenu/KeyMenu';
 import GenerateKeyDialog from './components/GenerateKeyDialog';
 import ImportKeyDialog from './components/ImportKeyDialog';
 import { StoredKeys } from './persistence/StoredKeys/StoredKeys';
