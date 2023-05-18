@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { Form, InputGroup, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { EncryptionType } from '../encryption/Types';
 import type { EncryptionKey } from '../encryption/Types';
-import type { StoredKey } from '../persistence/StoredKeys';
-import { isStoredAESKey, isStoredRSAPrivateKey, isStoredRSAPublicKey } from '../persistence/StoredKeys';
+import type { StoredKey } from '../persistence/StoredKeys/types';
+import { isStoredAESKey, isStoredRSAPrivateKey, isStoredRSAPublicKey } from '../persistence/StoredKeys/types';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { StoredKeysContext } from '../context/StoredKeysContext';
 import { textToBytes } from '../encryption/encodeDecode';
@@ -161,10 +161,10 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
           <option value={EncryptionType.Asymmetric}>Asymmetric encryption (RSA)</option>
         </Form.Select>
 
-        <Form.Label htmlFor="encryptionTypeSelect">How will you input your key?</Form.Label>
-        <Form.Select id="encryptionTypeSelect" onChange={keyInputMethodChanged} value={keyInputMethod}>
+        <Form.Label htmlFor="keyInputMethodSelect">How will you input your key?</Form.Label>
+        <Form.Select id="keyInputMethodSelect" onChange={keyInputMethodChanged} value={keyInputMethod}>
           <option value={KeyInputMethod.Stored}>Select a stored key</option>
-          <option value={KeyInputMethod.Write}>input into a text field</option>
+          <option value={KeyInputMethod.Write}>Input into a text field</option>
         </Form.Select>
 
         {

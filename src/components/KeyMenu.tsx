@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StoredKeysContext } from '../context/StoredKeysContext';
 import { useLiveQuery } from 'dexie-react-hooks';
-import type { StoredKey } from '../persistence/StoredKeys';
+import type { StoredKey } from '../persistence/StoredKeys/types';
 
 let didInit = false;
 
