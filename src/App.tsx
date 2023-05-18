@@ -192,9 +192,22 @@ function App(): JSX.Element {
     }
   };
 
-  const generateKeyTriggered = (type: EncryptionType, name: string): void => {
+  const generateKeyTriggered = async (type: EncryptionType, name: string): Promise<void> => {
     if (type === EncryptionType.Symmetric) {
-      console.log('symmetric', name);
+      const key: CryptoKey = await window.crypto.subtle.generateKey(
+        {
+          name: 'AES-GCM',
+          length: 256
+        },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      const keyRaw = await window.crypto.subtle.exportKey('raw', key);
+      const keyToStore: StoredAESKey = {
+        name,
+        aesKey: new Uint8Array(keyRaw)
+      };
+      await storedKeys.store(keyToStore);
     } else {
       console.log('asymmetric', name);
     }
