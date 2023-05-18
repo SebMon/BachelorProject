@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import type { StoredKey } from '../../persistence/StoredKeys/types';
 import { StoredKeysContext } from '../../context/StoredKeysContext';
 import { isStoredAESKey, isStoredRSAPublicKey, isStoredRSAPrivateKey } from '../../persistence/StoredKeys/types';
-import { bytesToHex, bytesToText } from '../../encryption/encodeDecode';
+import { bytesToBase64, bytesToHex, bytesToText } from '../../encryption/encodeDecode';
 import { KeyType } from '../../encryption/Types';
 
 interface KeyMenuItemProps {
@@ -87,8 +87,8 @@ export default function KeyMenuItem(props: KeyMenuItemProps): JSX.Element {
                 'jwk',
                 {
                   kty: 'RSA',
-                  e: bytesToHex(key.e),
-                  n: bytesToHex(key.n),
+                  e: b64tob64u(bytesToBase64(key.e)),
+                  n: b64tob64u(bytesToBase64(key.n)),
                   alg: 'RSA-OAEP-256',
                   ext: true
                 },
@@ -112,15 +112,14 @@ export default function KeyMenuItem(props: KeyMenuItemProps): JSX.Element {
                 'jwk',
                 {
                   kty: 'RSA',
-                  e: bytesToHex(key.e),
-                  n:
-                    bytesToHex(key.n) +
-                    bytesToHex(key.d) +
-                    bytesToHex(key.p) +
-                    bytesToHex(key.q) +
-                    bytesToHex(key.dp) +
-                    bytesToHex(key.dq) +
-                    bytesToHex(key.qi),
+                  e: b64tob64u(bytesToBase64(key.e)),
+                  n: b64tob64u(bytesToBase64(key.n)),
+                  d: b64tob64u(bytesToBase64(key.d)),
+                  p: b64tob64u(bytesToBase64(key.p)),
+                  q: b64tob64u(bytesToBase64(key.q)),
+                  dp: b64tob64u(bytesToBase64(key.dp)),
+                  dq: b64tob64u(bytesToBase64(key.dq)),
+                  qi: b64tob64u(bytesToBase64(key.qi)),
                   alg: 'RSA-OAEP-256',
                   ext: true
                 },
@@ -192,4 +191,11 @@ function formatAsPem(str: string, keyType: KeyType): string {
   finalString = finalString + `-----END ${keyType === KeyType.AsymmetricPrivate ? 'PRIVATE' : 'PUBLIC'} KEY-----`;
 
   return finalString;
+}
+
+function b64tob64u(a: string): string {
+  a = a.replace(/\=/g, '');
+  a = a.replace(/\+/g, '-');
+  a = a.replace(/\//g, '_');
+  return a;
 }

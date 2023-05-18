@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export function textToBytes(text: string): Uint8Array {
   const encoder = new TextEncoder();
   return encoder.encode(text);
