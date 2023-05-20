@@ -26,8 +26,7 @@ export class StoredKeys {
   }
 
   async getAll(): Promise<StoredKey[]> {
-    const emptyArr: StoredKey[] = [];
-    const keys = emptyArr.concat(
+    const keys = ([] as StoredKey[]).concat(
       await this.db.aesKeys.toArray(),
       await this.db.rsaPublicKeys.toArray(),
       await this.db.rsaPrivateKeys.toArray()

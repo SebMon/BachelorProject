@@ -307,7 +307,6 @@ function App(): JSX.Element {
               <div className="row h-75">
                 <KeyMenu onGenerateRequested={generateKeySelected} onImportRequested={importKeySelected}></KeyMenu>
               </div>
-
             </div>
           </div>
 

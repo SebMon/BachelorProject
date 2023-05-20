@@ -21,7 +21,7 @@ interface ProcessIndicatorProps {
 
 export default function ProcessIndicator(props: ProcessIndicatorProps): JSX.Element {
   return (
-    <Dropdown drop="up" className="position-absolute bottom-0 end-0 m-4 rounded-circle">
+    <Dropdown drop="up" className="position-absolute top-0 start-00 pt-1 ps-1 rounded-circle">
       <Dropdown.Toggle as={CustomToggle}></Dropdown.Toggle>
       <Dropdown.Menu>
         <ul className="list-group">

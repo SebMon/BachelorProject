@@ -60,7 +60,10 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
       <div className="row" style={{ height: keyListHeight }}>
         <div className="container pt-3 bg-light mb-5 rounded overflow-auto h-100">
           {keys?.map((key, index) => {
-            return <KeyMenuItem key={index} keyObject={key} />;
+            // Apperently it is bad to use index for they key, and it is what caused the issues with the names on the key list when importing keys.
+            // Using their names means we should add some kind of validation on key name input though.
+            // Or use some other unique identifier.
+            return <KeyMenuItem key={key.name} keyObject={key} />;
           })}
         </div>
       </div>

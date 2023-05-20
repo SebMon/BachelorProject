@@ -31,7 +31,7 @@ export default function ImportKeyDialog(props: ImportKeyDialogProps): JSX.Elemen
     }
   };
 
-  const generateButtonPressed = (): void => {
+  const importButtonPressed = (): void => {
     setKeyName('');
     setKeyText('');
     props.onImport(keyType, keyName, keyText);
@@ -56,7 +56,7 @@ export default function ImportKeyDialog(props: ImportKeyDialogProps): JSX.Elemen
   return (
     <Modal show={props.show} onHide={props.onClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Generate Key</Modal.Title>
+        <Modal.Title>Import Key</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form.Label htmlFor="encryptionTypeSelect">Key Type</Form.Label>
@@ -85,7 +85,7 @@ export default function ImportKeyDialog(props: ImportKeyDialogProps): JSX.Elemen
           <Form.Control as="textarea" id="encryptionKeyTextarea" value={keyText} onChange={keyTextChanged} />
         </InputGroup>
 
-        <button className="btn btn-primary mt-3" onClick={generateButtonPressed}>
+        <button className="btn btn-primary mt-3" onClick={importButtonPressed}>
           Import and save
         </button>
       </Modal.Body>
