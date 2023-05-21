@@ -75,9 +75,7 @@ function App(): JSX.Element {
 
   const createProcess = (name: string): string => {
     const UUID = self.crypto.randomUUID();
-    const newValue = currentProcesses;
-    currentProcesses.push({ UUID, name });
-    setCurrentProcesses(newValue);
+    setCurrentProcesses([...currentProcesses, { UUID, name }]);
     return UUID;
   };
 
