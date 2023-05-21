@@ -24,6 +24,11 @@ export interface RSAModuloExponentSet {
   exponent: Uint8Array;
 }
 
+export interface RSAKeySet {
+  privateKey: RSAPrivateKey;
+  publicKey: RSAPublicKey;
+}
+
 /**
  * Converts a string repressentation of an RSA public key - e.g. from a public.pem file
  * @param pem pem pkcs8 formatted public key
