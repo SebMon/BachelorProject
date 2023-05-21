@@ -190,16 +190,32 @@ function App(): JSX.Element {
         name,
         aesKey: keyRaw
       };
+
+      if (await storedKeys.isNameTaken(name)) {
+        alert("your key can't have the same name as another one of your keys");
+        return;
+      }
       await storedKeys.store(keyToStore);
     } else {
       const keySet = await generateRSAKeySet();
+      const publicName = `${name} - public`;
+      const privateName = `${name} - private`;
 
-      await storedKeys.store({ ...keySet.publicKey, name: `${name} - public` });
-      await storedKeys.store({ ...keySet.privateKey, name: `${name} - private` });
+      if ((await storedKeys.isNameTaken(publicName)) || (await storedKeys.isNameTaken(privateName))) {
+        alert("your key can't have the same name as another one of your keys");
+        return;
+      }
+      await storedKeys.store({ ...keySet.publicKey, name: publicName });
+      await storedKeys.store({ ...keySet.privateKey, name: privateName });
     }
   };
 
   const importKeyTriggered = async (type: KeyType, name: string, keyText: string): Promise<void> => {
+    if (await storedKeys.isNameTaken(name)) {
+      alert("your key can't have the same name as another one of your keys");
+      return;
+    }
+
     if (type === KeyType.Symmetric) {
       const key: StoredAESKey = {
         name,

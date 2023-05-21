@@ -35,7 +35,18 @@ export class StoredKeys {
     return keys;
   }
 
+  async isNameTaken(name: string): Promise<boolean> {
+    const keys = await this.getAll();
+    return keys.some((key) => key.name === name);
+  }
+
   async store(key: StoredKey): Promise<void> {
+    const keyWithSameNameInDB = (await this.getAll()).find((elem) => elem.name === key.name);
+
+    if (keyWithSameNameInDB !== undefined && !keysAreTheSame(key, keyWithSameNameInDB)) {
+      throw Error('The key has the same name as another stored key!');
+    }
+
     if (isStoredAESKey(key)) {
       await this.db.aesKeys.put(key);
       return;
@@ -70,3 +81,17 @@ export class StoredKeys {
     throw Error('The key was not of a type that could be in the database');
   }
 }
+
+const keysAreTheSame = (key1: StoredKey, key2: StoredKey): boolean => {
+  if (!('id' in key1) || !('id' in key2)) {
+    return false;
+  }
+  return keysAreOfSameType(key1, key2) && key1.id === key2.id;
+};
+
+const keysAreOfSameType = (key1: StoredKey, key2: StoredKey): boolean => {
+  if (isStoredAESKey(key1) && isStoredAESKey(key2)) return true;
+  if (isStoredRSAPublicKey(key1) && isStoredRSAPublicKey(key2)) return true;
+  if (isStoredRSAPrivateKey(key1) && isStoredRSAPrivateKey(key2)) return true;
+  return false;
+};

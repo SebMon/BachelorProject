@@ -8,7 +8,7 @@ export enum EncryptionType {
 
 export enum KeyType {
   Symmetric = 'symmetric',
-  AsymmetricPublic = 'asymetricPublic',
+  AsymmetricPublic = 'asymmetricPublic',
   AsymmetricPrivate = 'asymmetricPrivate'
 }
 
