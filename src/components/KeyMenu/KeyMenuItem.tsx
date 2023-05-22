@@ -38,10 +38,13 @@ export default function KeyMenuItem(props: KeyMenuItemProps): JSX.Element {
   };
 
   const stopEditing = (): void => {
-    storedKeys.store({ ...key, name: editableKeyName }).catch((e) => {
-      console.error('could store the key with the new name');
-      console.error(e);
-    });
+    if (editableKeyName !== key.name) {
+      storedKeys.store({ ...key, name: editableKeyName }).catch(() => {
+        alert(
+          "Something went wrong, please be aware that you can't rename a key to have the same name as another one of your keys"
+        );
+      });
+    }
     setEditing(false);
   };
 

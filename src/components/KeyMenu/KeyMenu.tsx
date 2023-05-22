@@ -59,8 +59,8 @@ export default function KeyMenu(props: KeyMenuProps): JSX.Element {
 
       <div className="row" style={{ height: keyListHeight }}>
         <div className="container pt-3 bg-light mb-5 rounded overflow-auto h-100">
-          {keys?.map((key, index) => {
-            return <KeyMenuItem key={index} keyObject={key} />;
+          {keys?.map((key) => {
+            return <KeyMenuItem key={key.name} keyObject={key} />;
           })}
         </div>
       </div>

@@ -23,6 +23,7 @@ import type { StoredAESKey, StoredRSAPrivateKey, StoredRSAPublicKey } from './pe
 import { StoredKeysContext } from './context/StoredKeysContext';
 import { hexToBytes } from './encryption/encodeDecode';
 import { PrivateKeyFromPem, PublicKeyFromPem, base64ToUInt8Array } from './encryption/RSA/keys';
+import { generateAESKey, generateRSAKeySet } from './encryption/KeyGenerator';
 
 const settings = new Settings();
 const storedKeys = new StoredKeys();
@@ -75,9 +76,7 @@ function App(): JSX.Element {
 
   const createProcess = (name: string): string => {
     const UUID = self.crypto.randomUUID();
-    const newValue = currentProcesses;
-    currentProcesses.push({ UUID, name });
-    setCurrentProcesses(newValue);
+    setCurrentProcesses([...currentProcesses, { UUID, name }]);
     return UUID;
   };
 
@@ -186,57 +185,37 @@ function App(): JSX.Element {
 
   const generateKeyTriggered = async (type: EncryptionType, name: string): Promise<void> => {
     if (type === EncryptionType.Symmetric) {
-      const key: CryptoKey = await window.crypto.subtle.generateKey(
-        {
-          name: 'AES-GCM',
-          length: 256
-        },
-        true,
-        ['encrypt', 'decrypt']
-      );
-      const keyRaw: ArrayBuffer = await window.crypto.subtle.exportKey('raw', key);
+      const keyRaw = await generateAESKey();
       const keyToStore: StoredAESKey = {
         name,
-        aesKey: new Uint8Array(keyRaw)
+        aesKey: keyRaw
       };
+
+      if (await storedKeys.isNameTaken(name)) {
+        alert("your key can't have the same name as another one of your keys");
+        return;
+      }
       await storedKeys.store(keyToStore);
     } else {
-      const keyPair: CryptoKeyPair = await window.crypto.subtle.generateKey(
-        {
-          name: 'RSA-OAEP',
-          modulusLength: 2048,
-          publicExponent: new Uint8Array([1, 0, 1]),
-          hash: 'SHA-256'
-        },
-        true,
-        ['encrypt', 'decrypt']
-      );
-      const publicKey = await window.crypto.subtle.exportKey('jwk', keyPair.publicKey);
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
-      const publicKeyToStore: StoredRSAPublicKey = {
-        name: name + ' - public',
-        n: base64ToUInt8Array(publicKey.n!),
-        e: base64ToUInt8Array(publicKey.e!)
-      };
-      const privateKey = await window.crypto.subtle.exportKey('jwk', keyPair.privateKey);
-      const privateKeyToStore: StoredRSAPrivateKey = {
-        name: name + ' - private',
-        n: base64ToUInt8Array(privateKey.n!),
-        e: base64ToUInt8Array(privateKey.e!),
-        d: base64ToUInt8Array(privateKey.d!),
-        p: base64ToUInt8Array(privateKey.p!),
-        q: base64ToUInt8Array(privateKey.q!),
-        dp: base64ToUInt8Array(privateKey.dp!),
-        dq: base64ToUInt8Array(privateKey.dq!),
-        qi: base64ToUInt8Array(privateKey.qi!)
-      };
-      /* eslint-emable @typescript-eslint/no-non-null-assertion */
-      await storedKeys.store(publicKeyToStore);
-      await storedKeys.store(privateKeyToStore);
+      const keySet = await generateRSAKeySet();
+      const publicName = `${name} - public`;
+      const privateName = `${name} - private`;
+
+      if ((await storedKeys.isNameTaken(publicName)) || (await storedKeys.isNameTaken(privateName))) {
+        alert("your key can't have the same name as another one of your keys");
+        return;
+      }
+      await storedKeys.store({ ...keySet.publicKey, name: publicName });
+      await storedKeys.store({ ...keySet.privateKey, name: privateName });
     }
   };
 
   const importKeyTriggered = async (type: KeyType, name: string, keyText: string): Promise<void> => {
+    if (await storedKeys.isNameTaken(name)) {
+      alert("your key can't have the same name as another one of your keys");
+      return;
+    }
+
     if (type === KeyType.Symmetric) {
       const key: StoredAESKey = {
         name,
@@ -307,7 +286,6 @@ function App(): JSX.Element {
               <div className="row h-75">
                 <KeyMenu onGenerateRequested={generateKeySelected} onImportRequested={importKeySelected}></KeyMenu>
               </div>
-
             </div>
           </div>
 

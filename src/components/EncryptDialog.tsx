@@ -9,6 +9,7 @@ import { StoredKeysContext } from '../context/StoredKeysContext';
 import { textToBytes } from '../encryption/encodeDecode';
 import { PrivateKeyFromPem, PublicKeyFromPem } from '../encryption/RSA/keys';
 import type { AESKey } from '../encryption/AES';
+import { getAESKeyFromPassword } from '../encryption/KeyGenerator';
 
 enum KeyInputMethod {
   Stored = 'stored',
@@ -152,20 +153,13 @@ export default function EncryptDialog(props: EncryptDialogProps): JSX.Element {
     }
   };
 
-  const getAESKeyFromPassword = async (): Promise<AESKey> => {
-    const buffer = await crypto.subtle.digest('SHA-256', textToBytes(password));
-    const bytes = new Uint8Array(buffer);
-    console.log(bytes);
-    return { aesKey: bytes };
-  };
-
   const getKey = async (): Promise<EncryptionKey> => {
     if (keyInputMethod === KeyInputMethod.Write) {
       return await getKeyFromTextField();
     } else if (keyInputMethod === KeyInputMethod.Stored) {
       return getSelectedKey();
     } else {
-      return await getAESKeyFromPassword();
+      return await getAESKeyFromPassword(password);
     }
   };
 
